@@ -29,7 +29,7 @@ Routes:
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Responsive download page and installation instructions |
+| `/` | Simple mirror page with filename, download button, SHA-256 and MD5 |
 | `/download` | R2 archive download |
 | `/downloads/AzerothSurvivorsWindowsNew.rar` | Named download alias |
 | `/checksums.txt` | Downloadable SHA-256 checksum |
@@ -47,7 +47,7 @@ npm run verify -- https://your-worker.workers.dev
 
 The HTTP E2E scenario downloads all 760 MB across 23 independent byte-range requests, validates the complete SHA-256, and checks suffix/open-ended ranges, invalid requests, caching, stale resume validators, file headers, and route errors. It writes `artifacts/e2e.json`, including the deployment URL, timestamps, checked behavior, total bytes, and computed hash. It keeps no downloaded copy of the archive.
 
-Responsive visual verification uses the actual page HTML at desktop and phone widths, including expanded checksum instructions and clipboard-denied fallback. See `artifacts/visual-qa.json` for recorded checks. The HTML is self-contained and makes no external asset requests.
+Responsive visual verification uses the actual page HTML at desktop and phone widths in light and dark mode. See `artifacts/visual-qa.json` for recorded checks. The mirror page contains only the file information, download button, and checksums. It is self-contained, uses no JavaScript, and makes no external asset requests.
 
 ## Upload the archive
 

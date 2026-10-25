@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-10-25T10:08:49.835Z",
+  "base": "https://azerothsurvivors.sandervispoel.workers.dev",
+  "passed": true,
+  "checks": [
+    "Public page and download link reachable",
+    "SHA-256 and MD5 displayed correctly",
+    "Download returns original filename and 760497456-byte size",
+    "Byte-range download returns RAR5 archive header",
+    "Checksum file matches SHA-256"
+  ],
+  "note": "Presentation-only change. Full-file integrity and resume behavior previously verified in e2e.json."
+}
