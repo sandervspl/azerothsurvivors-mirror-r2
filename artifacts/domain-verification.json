@@ -1,0 +1,39 @@
+{
+  "verifiedAt": "2026-10-25T10:30:47.953Z",
+  "base": "https://azerothsurvivors-mirror.sandervspl.dev",
+  "passed": true,
+  "dnsAddresses": [
+    "104.21.33.240",
+    "172.67.151.177"
+  ],
+  "https": "Certificate validation enabled",
+  "dnsNote": "Direct DNS queries via node:dns resolve4 avoid stale Windows getaddrinfo NXDOMAIN cache. Standard curl HTTPS also returned 200 without overrides.",
+  "pageStatus": 200,
+  "archiveBytes": 760497456,
+  "etag": "\"ab6eeffd03f7b27bd9660674b3da7882-23\"",
+  "samples": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "c2279a1b4e11261d072aa60f10db9c6fa802f8c4e6316e436277add9088c8720",
+      "matchesLocalArchive": true
+    },
+    {
+      "offset": 335544320,
+      "length": 1048576,
+      "sha256": "ab72dc81c12fc63be8b77f9e4699945025ef0c56dd6bf4eaaef73be711cca4b1",
+      "matchesLocalArchive": true
+    },
+    {
+      "offset": 760497328,
+      "length": 128,
+      "sha256": "5c500096bb3f7b163c81bdaf85a3c49e9aeb7ace85f836291a5716305cdceef0",
+      "matchesLocalArchive": true
+    }
+  ],
+  "conditionalDownloadStatus": 304,
+  "checksumFileMatches": true,
+  "releaseMetadataMatches": true,
+  "workersDevStatus": 200,
+  "fullVerificationCommand": "npm run verify"
+}

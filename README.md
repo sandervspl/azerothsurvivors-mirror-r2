@@ -1,6 +1,8 @@
 # Azeroth Survivors download mirror
 
-Public website: https://azerothsurvivors.sandervispoel.workers.dev
+Public website: https://azerothsurvivors-mirror.sandervspl.dev
+
+Workers URL: https://azerothsurvivors.sandervispoel.workers.dev
 
 A small Cloudflare Worker serves the download page and streams the Windows archive from the private `azerothsurvivors-downloads` R2 bucket. The site is public and requires no login. It does not depend on the old file server. The archive stays outside Git.
 
@@ -15,7 +17,7 @@ npm run typecheck
 npm run deploy
 ```
 
-Configuration lives in `cloudflare.config.ts`. No custom domain is configured; the original domain and server are unchanged.
+Configuration lives in `cloudflare.config.ts`, including the `azerothsurvivors-mirror.sandervspl.dev` custom domain. Cloudflare manages its DNS and HTTPS certificate during deployment.
 
 ## Release
 

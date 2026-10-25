@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 
-const base = process.argv[2] || 'https://azerothsurvivors.sandervispoel.workers.dev';
+const base = process.argv[2] || 'https://azerothsurvivors-mirror.sandervspl.dev';
 const checks = [];
 const report = { base, startedAt: new Date().toISOString(), checks, passed: false };
 const expected = {
