@@ -1,0 +1,22 @@
+{
+  "verifiedAt": "2026-10-25T11:42:48.802Z",
+  "method": "T3 html_preview of source HTML hydrated from the current release manifest; live HTTP checks confirm published title and version, archived metadata, checksum values, and download headers.",
+  "title": "Azeroth Survivors",
+  "version": "0.115.0",
+  "checks": [
+    {
+      "width": 900,
+      "status": "fulfilled",
+      "result": [
+        "{\"width\":900,\"contentHeight\":572,\"capturedHeight\":572,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":900,\\\"overflow\\\":false,\\\"title\\\":\\\"Azeroth Survivors\\\",\\\"version\\\":\\\"Version: 0.115.0\\\",\\\"font\\\":\\\"ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \\\\\\\"Segoe UI\\\\\\\", sans-serif\\\",\\\"letterSpacing\\\":\\\"normal\\\"}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":900,\"height\":572}}"
+      ]
+    },
+    {
+      "width": 320,
+      "status": "fulfilled",
+      "result": [
+        "{\"width\":320,\"contentHeight\":606,\"capturedHeight\":606,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":320,\\\"overflow\\\":false,\\\"title\\\":\\\"Azeroth Survivors\\\",\\\"version\\\":\\\"Version: 0.115.0\\\",\\\"font\\\":\\\"ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \\\\\\\"Segoe UI\\\\\\\", sans-serif\\\",\\\"letterSpacing\\\":\\\"normal\\\"}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":606}}"
+      ]
+    }
+  ]
+}

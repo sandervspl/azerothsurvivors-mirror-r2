@@ -5,20 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Download mirror with file verification checksums.">
   <meta name="theme-color" content="#15130f">
-  <title>Download mirror</title>
+  <title>Azeroth Survivors — Download mirror</title>
   <style>
     :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #e8dfcc; background: #15130f; }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 96px 24px; font-size: 14px; line-height: 1.5; background: radial-gradient(ellipse at 50% 0, #75532b1a, transparent 65%); }
     main { max-width: 820px; margin: 0 auto; }
-    .heading { display: flex; align-items: center; gap: 10px; margin: 0 0 20px 4px; font-size: 11px; font-weight: 650; text-transform: uppercase; color: #c1a36e; }
+    .page-header { margin: 0 0 26px 4px; }
+    .heading { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 11px; font-weight: 650; text-transform: uppercase; color: #c1a36e; }
     .heading::before { content: ""; width: 8px; height: 8px; background: #b88d4a; border: 1px solid #e4c48a; border-radius: 0; transform: rotate(45deg); }
+    .page-title { color: #eddbb4; font-size: 32px; line-height: 1.25; font-weight: 650; margin: 0; }
     .file { background: linear-gradient(135deg, #29231b, #211d17); border-radius: 5px; overflow: hidden; box-shadow: 0 14px 40px #0005, inset 0 0 0 1px #0006; border: 1px solid #6b5231; border-top: 2px solid #a07a43; }
     .download { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 32px; padding: 38px 36px; }
     .file-info { display: flex; align-items: flex-start; gap: 18px; min-width: 0; }
     .file-icon { flex: 0 0 46px; width: 46px; height: 54px; background: linear-gradient(#403322, #2a231a); color: #dfb971; border: 1px solid #7a5e34; border-radius: 3px; box-shadow: inset 0 0 0 1px #0004; display: grid; place-items: center; }
     .file-icon svg { width: 23px; height: 27px; }
-    h1 { color: #eddbb4; font-size: 22px; line-height: 1.4; font-weight: 600; margin: -3px 0 9px; overflow-wrap: anywhere; }
+    .filename { color: #eddbb4; font-size: 22px; line-height: 1.4; font-weight: 600; margin: -3px 0 6px; overflow-wrap: anywhere; }
+    .version { color: #dfb971; font-size: 12px; margin: 0 0 12px; overflow-wrap: anywhere; }
     .metadata { display: flex; align-items: center; gap: 11px; color: #b1a58f; font-size: 12px; margin: 0; }
     .format { font-size: 10px; font-weight: 650; background: #30291f; padding: 3px 7px; border: 1px solid #57452e; border-radius: 2px; color: #cbb17f; }
     .button { display: flex; align-items: center; justify-content: center; gap: 22px; background: linear-gradient(#8b382b, #65251e); color: #fae3b5; border: 1px solid #b68c4b; box-shadow: inset 0 1px #dbac6155, inset 0 -2px #240b0755, 0 2px 8px #0004; text-decoration: none; padding: 14px 21px; border-radius: 3px; font-weight: 600; font-size: 13px; transition: filter .15s; }
@@ -34,7 +37,8 @@
       body { padding: 48px 18px; }
       .download { grid-template-columns: 1fr; padding: 27px 24px; gap: 25px; }
       .file-info { gap: 14px; }
-      h1 { font-size: 20px; }
+      .page-title { font-size: 28px; }
+      .filename { font-size: 20px; }
       .file-icon { flex-basis: 38px; width: 38px; height: 46px; }
       .button { justify-content: space-between; padding: 14px 18px; }
       .checksums { padding: 22px 24px 25px; grid-template-columns: 1fr; gap: 5px; }
@@ -45,13 +49,14 @@
 </head>
 <body>
   <main>
-    <p class="heading">Download mirror</p>
+    <header class="page-header"><p class="heading">Download mirror</p><h1 class="page-title">Azeroth Survivors</h1></header>
     <section class="file" aria-labelledby="filename">
       <div class="download">
         <div class="file-info">
           <div class="file-icon" aria-hidden="true"><svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 1h10l6 6v18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Z"/><path d="M15 1v7h6M10 4h3m-3 4h3m-3 4h3m-3 4h3m-3 4h3"/></svg></div>
           <div>
-            <h1 id="filename">__FILENAME__</h1>
+            <h2 class="filename" id="filename">__FILENAME__</h2>
+            <p class="version">Version: __VERSION__</p>
             <p class="metadata"><span>__SIZE__</span><span class="format">__FORMAT__</span></p>
           </div>
         </div>

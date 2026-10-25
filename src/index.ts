@@ -48,7 +48,7 @@ export default {
         if (path === "/checksums.txt") return response(head ? null : `${release.sha256}  ${release.filename}\n`, 200, { "Content-Type": "text/plain; charset=utf-8", "Content-Disposition": 'attachment; filename="checksums.txt"', "Cache-Control": "no-store" });
         const values: Record<string, string> = {
           FILENAME: release.filename, SIZE: `${(release.bytes / 1024 / 1024).toLocaleString("en-US", { maximumFractionDigits: 1 })} MiB`,
-          FORMAT: release.filename.split(".").pop()!.toUpperCase(), SHA256: release.sha256, MD5: release.md5, DOWNLOAD_URL: data.downloadUrl,
+          FORMAT: release.filename.split(".").pop()!.toUpperCase(), VERSION: release.version, SHA256: release.sha256, MD5: release.md5, DOWNLOAD_URL: data.downloadUrl,
         };
         const html = page.replace(/__([A-Z0-9_]+)__/g, (_, key: string) => escapeHtml(values[key] || ""));
         return response(head ? null : html, 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
