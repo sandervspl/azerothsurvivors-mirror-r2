@@ -1,0 +1,8 @@
+{
+  "worker": "azerothsurvivors-release-staging",
+  "bucket": "azerothsurvivors-release-staging",
+  "pendingUploadsAborted": 1,
+  "workerDeleted": true,
+  "bucketDeleted": true,
+  "scope": "Only the disposable staging Worker and test bucket created for publishing verification were removed."
+}

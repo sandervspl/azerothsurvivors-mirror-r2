@@ -1,0 +1,19 @@
+{
+  "verifiedAt": "2026-10-25T11:06:18.447Z",
+  "base": "https://azerothsurvivors-release-staging.sandervispoel.workers.dev",
+  "passed": true,
+  "statuses": [
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    401,
+    429
+  ]
+}

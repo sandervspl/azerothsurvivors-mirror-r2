@@ -10,6 +10,8 @@ export default defineConfig({
     entrypoint,
     env: {
       DOWNLOADS: bindings.r2({ name: "azerothsurvivors-downloads" }),
+      ADMIN_SETUP_HASH: bindings.secret(),
+      LOGIN_LIMITER: bindings.rateLimit({ namespace: "98431", simple: { limit: 10, period: 60 } }),
     },
   },
 });

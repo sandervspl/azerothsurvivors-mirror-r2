@@ -1,70 +1,112 @@
-# Azeroth Survivors download mirror
+# Download mirror
 
-Public website: https://azerothsurvivors-mirror.sandervspl.dev
+Public mirror: https://azerothsurvivors-mirror.sandervspl.dev
 
-Workers URL: https://azerothsurvivors.sandervispoel.workers.dev
+Upload and release management: https://azerothsurvivors-mirror.sandervspl.dev/admin
 
-A small Cloudflare Worker serves the download page and streams the Windows archive from the private `azerothsurvivors-downloads` R2 bucket. The site is public and requires no login. It does not depend on the old file server. The archive stays outside Git.
+## Upload a new version
+
+Sign in at the admin page, choose a RAR, ZIP, or 7z archive (up to 10 GiB), optionally enter a version label, and click **Upload & publish**. SHA-256 and MD5 are calculated automatically while reading the file in 32 MiB chunks. Each chunk is checked against the MD5 ETag returned by R2 before publication.
+
+The archive, hashes, filename, and size are stored together in a release manifest. The public page reads the current manifest, so uploading a new version requires no code changes or deployment.
+
+If interrupted, reopen the page, select the same file, and resume. Uploaded chunks are checked and skipped. Pending uploads expire after 24 hours; discard expired uploads and start again. Discarding never removes a completed release.
+
+Every upload gets a unique R2 key and permanent download URL, even with an identical filename. Publication succeeds only if the current release has not changed since the upload started. A conflicting upload is retained in history for explicit activation.
+
+Use **Make current** in history to roll back or activate an archived version. Previous files and manifests remain intact; there is no automatic deletion of old versions.
+
+## First-time admin setup
+
+The owner chooses the production password directly through a private one-time setup link. It is never sent to the agent or stored in Git.
+
+The setup hash is a Cloudflare Worker secret. A salted PBKDF2-SHA-256 verifier and a random session signing key are stored in the private R2 bucket. Sessions expire after 12 hours and use Secure, HttpOnly, SameSite=Strict cookies. Mutations require the same Origin; setup and sign-in attempts are rate limited. The setup link stops working once a password is configured.
+
+For a new environment:
+
+~~~powershell
+node scripts/setup-admin.mjs https://your-worker.workers.dev admin
+cf deploy --secrets-file .local/admin-secrets.json
+~~~
+
+Open the private URL saved in **.local/admin-setup-url.txt** and set the password. The token is removed from the address bar immediately and submitted only to this site's setup API. Keep it out of public messages and Git. The entire .local directory is ignored.
+
+Do not rerun setup for a configured admin. To reset a lost password, first generate and deploy a fresh setup hash using a new local label. Then use the authenticated Cloudflare CLI to delete **only admin/auth.json** from the private bucket, and immediately open the new setup link. This invalidates all sessions without affecting releases.
+
+## Command-line publishing
+
+~~~powershell
+npm run upload -- 'C:\path\to\new-archive.rar' 'Version label'
+~~~
+
+The command asks for the password with hidden input, calculates both full-file hashes, uploads and verifies parts, then publishes. It saves only an unfinished upload ID and file information in **.local/cli-upload.json**, so rerunning the same command resumes it. Credentials are not saved. Automation can supply MIRROR_ADMIN_PASSWORD through a secret manager, never a command-line argument.
+
+An optional third argument selects another mirror URL. A publication conflict means the archive is complete and available in history for activation. After discarding a CLI upload in the web UI, remove its obsolete local resume file before starting another upload.
 
 ## Develop and deploy
 
-Requires Node.js 22+ and the Cloudflare `cf` CLI, authenticated to the account containing the bucket.
+Requires Node.js 22+, the cf CLI, and access to the configured Cloudflare resources.
 
-```powershell
+~~~powershell
 npm ci
 npm run dev
 npm run typecheck
 npm run deploy
-```
+~~~
 
-Configuration lives in `cloudflare.config.ts`, including the `azerothsurvivors-mirror.sandervspl.dev` custom domain. Cloudflare manages its DNS and HTTPS certificate during deployment.
+Cloudflare configuration declares the Worker, custom domain, private R2 bucket, setup secret, and rate limiter. Existing secrets are retained on ordinary deployments. The browser uploader is bundled locally by client-build.ts; no CDN scripts are used.
 
-## Release
+The original mirror archive was retained at its existing R2 key and given an initial manifest. Both hashes were independently calculated from the local archive. All new uploads use releases/{release-id}/{filename} keys.
 
-- Object key / download name: `AzerothSurvivorsWindowsNew.rar`
-- Size: 760,497,456 bytes (725.3 MiB)
-- SHA-256: `971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8`
-- MD5 (legacy): `7748bfdffaccd2f46d868cf69ad3e72c`
-- Contents: `AzerothSurvivors.exe` and the accompanying `Data` directory.
+## Storage and public routes
 
-Routes:
+| R2 key | Purpose |
+| --- | --- |
+| release.json | Current release selected with conditional writes to prevent concurrent overwrite |
+| manifests/{id}.json | Immutable release metadata |
+| history/{reverse-time}-{id}.json | History ordered newest first |
+| releases/{id}/{filename} | Immutable new archive objects |
+| uploads/{id}/... | Upload state and verified part receipts |
+| admin/auth.json | Private password verifier and session signing key |
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Simple mirror page with filename, download button, SHA-256 and MD5 |
-| `/download` | R2 archive download |
-| `/downloads/AzerothSurvivorsWindowsNew.rar` | Named download alias |
-| `/checksums.txt` | Downloadable SHA-256 checksum |
-| `/api/release` | Release metadata |
+| / | File information, download button, and hashes from the current manifest |
+| /download | Uncached redirect to the current immutable download |
+| /downloads/{id}/{filename} | Versioned file with HEAD, ranges, If-Range, and ETag support |
+| /api/release | Current release metadata, without private storage keys |
+| /api/releases/{id} | Archived release metadata |
+| /checksums.txt?release={id} | SHA-256 checksum file for a pinned release |
 
-Downloads support HEAD, byte ranges, suffix ranges, ETags, conditional requests, and If-Range so download managers can resume. R2 bodies stream directly to the response without loading the archive into Worker memory. The object ETag is checked between the metadata lookup and stream retrieval. Unavailable objects return an uncached 503 with a retry interval.
+Private R2 objects are not exposed by a generic object-serving route. Selection responses use no-store; immutable downloads can be cached without mixing versions. Full-file hashes are computed by the authenticated browser or CLI, with R2-confirmed part MD5 checks protecting transfer integrity. Live verification independently rehashes the entire downloaded file.
 
-## Repeatable live verification
+## Verification
 
-```powershell
+~~~powershell
 npm run verify
-# Or target another deployment:
-npm run verify -- https://your-worker.workers.dev
-```
+npm run verify -- https://azerothsurvivors-mirror.sandervspl.dev 'C:\path\to\archive.rar'
+~~~
 
-The HTTP E2E scenario downloads all 760 MB across 23 independent byte-range requests, validates the complete SHA-256, and checks suffix/open-ended ranges, invalid requests, caching, stale resume validators, file headers, and route errors. It writes `artifacts/e2e.json`, including the deployment URL, timestamps, checked behavior, total bytes, and computed hash. It keeps no downloaded copy of the archive.
+This pins the current version, downloads it across independent range requests, verifies SHA-256 and MD5, and checks caching, invalid ranges, aliases, and HTTP errors. The optional archive argument also validates against a local source file. Evidence is saved in artifacts/e2e.json.
 
-Responsive visual verification uses the actual page HTML at desktop and phone widths. See `artifacts/visual-qa.json` for recorded checks. The mirror uses a light violet and white design with file information and a download button above a compact checksum table. It is self-contained, uses no JavaScript, and makes no external asset requests.
+Publishing tests use a separate staging Worker and bucket. Provision them before running the following; these fixtures never replace production:
 
-## Upload the archive
-
-`cf r2 objects put` supports up to 300 MB, below this archive's size. The optional temporary Worker in `tools/upload` uses the [R2 multipart API](https://developers.cloudflare.com/r2/api/workers/multipart-usage/) with 32 MiB parts. It accepts only the documented archive key and requires a random bearer credential generated locally. No upload route exists on the public website.
-
-```powershell
-node scripts/upload.mjs init
-Push-Location tools/upload
-cf deploy --secrets-file ../../.local/upload-secret.json
+~~~powershell
+cf r2 buckets create --name azerothsurvivors-release-staging --location-hint weur
+node scripts/setup-admin.mjs https://azerothsurvivors-release-staging.sandervispoel.workers.dev staging
+Push-Location tools/staging
+cf deploy --secrets-file ../../.local/staging-secrets.json
 Pop-Location
-node scripts/upload.mjs https://azerothsurvivors-upload.sandervispoel.workers.dev 'C:\path\to\AzerothSurvivorsWindowsNew.rar'
-cf workers delete azerothsurvivors-upload --force
-npm run verify
-```
+npm run verify:publishing
+npm run verify:recovery
+npm run verify:browser
+npm run verify:auth
+~~~
 
-The upload script validates the local archive hash before sending it, retries individual parts, aborts failed multipart transfers, and writes a size/hash receipt to `artifacts/upload.json`. On an ambiguous network failure during completion, check the R2 object and run live verification before retrying. After a successful upload, delete the temporary Worker as shown, then remove `.local/upload-secret.json`. Initialization deliberately refuses to overwrite an existing credential.
+The API scenario uploads a 33 MiB archive with a long Unicode filename, resumes in a different client, verifies both hashes and all downloaded bytes, tests same-name replacement, publication conflicts, incomplete uploads, rollback, authentication, and origin checks. The recovery scenario deliberately removes a staging history index and verifies that retrying completion restores it without changing the current release or archive.
 
-When changing the release, update `src/release.ts`, the visible metadata in `src/page.html`, the uploader metadata/hash guard, and the E2E release expectation together. Upload first, deploy the corresponding metadata, and rerun verification. The existing scripts intentionally reject unreviewed archive changes.
+The browser scenario forces a network failure after part one, reloads, resumes without resending that part, publishes, verifies every downloaded byte and both hashes, rolls back, and signs out. It uses an isolated headless Chrome instance; set CHROME_PATH if necessary.
+
+Evidence includes publishing-e2e.json, browser-e2e.json, and desktop/mobile screenshots in artifacts. Test-only credentials stay in ignored local files. Failure scenarios are recorded in docs/publishing-verification.md.
+
+After testing, abort pending staging uploads, delete the staging Worker, empty **only** its dedicated test bucket, and delete that bucket. Historical evidence remains useful after this disposable environment is removed.

@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "target": "es2022", "lib": ["es2022", "DOM"], "module": "preserve", "moduleResolution": "bundler",
+    "types": [], "strict": true, "noEmit": true, "skipLibCheck": true
+  },
+  "include": ["src/admin-client.ts"]
+}

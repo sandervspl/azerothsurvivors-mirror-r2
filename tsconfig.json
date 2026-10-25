@@ -12,5 +12,6 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["src", "cloudflare.config.ts", ".cloudflare/types"]
+  "include": ["src", "cloudflare.config.ts", ".cloudflare/types"],
+  "exclude": ["src/admin-client.ts"]
 }

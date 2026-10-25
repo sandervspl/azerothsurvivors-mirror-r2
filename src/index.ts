@@ -1,20 +1,10 @@
 import page from "./page.html?raw";
-import { release } from "./release";
-
-interface Env { DOWNLOADS: R2Bucket }
-
-const securityHeaders = {
-  "X-Content-Type-Options": "nosniff",
-  "Referrer-Policy": "no-referrer",
-  "X-Frame-Options": "DENY",
-  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
-};
-
-function response(body: BodyInit | null, status = 200, extra: HeadersInit = {}) {
-  const headers = new Headers(securityHeaders);
-  new Headers(extra).forEach((value, key) => headers.set(key, value));
-  return new Response(body, { status, headers });
-}
+import adminPage from "./admin.html?raw";
+import adminScript from "virtual:admin-client";
+import { adminApi } from "./admin-api";
+import { authenticated, authRoute } from "./auth";
+import { contentType, disposition, escapeHtml, HttpError, json, response, validId, type Env } from "./core";
+import { current, getRelease, publicRelease } from "./releases";
 
 function byteRange(value: string, size: number): { offset: number; length: number } | null {
   const match = /^bytes=(\d*)-(\d*)$/.exec(value);
@@ -33,36 +23,50 @@ function byteRange(value: string, size: number): { offset: number; length: numbe
 
 export default {
   async fetch(request, env) {
-    const path = new URL(request.url).pathname;
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      return response("Method not allowed", 405, { Allow: "GET, HEAD" });
-    }
+    const url = new URL(request.url);
+    const path = url.pathname;
     const head = request.method === "HEAD";
-    if (path === "/") return response(head ? null : page, 200, {
-      "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300",
-    });
-    if (path === "/api/release") return response(head ? null : JSON.stringify(release), 200, {
-      "Content-Type": "application/json", "Cache-Control": "public, max-age=300",
-    });
-    if (path === "/checksums.txt") return response(head ? null : `${release.sha256}  ${release.filename}\n`, 200, {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="checksums.txt"',
-    });
-    if (path !== "/download" && path !== `/downloads/${release.filename}`) {
-      return response(head ? null : "Page not found", 404);
-    }
-
     try {
-      const metadata = await env.DOWNLOADS.head(release.filename);
-      if (!metadata) return response(head ? null : "The download is temporarily unavailable. Please try again shortly.", 503, { "Retry-After": "60", "Cache-Control": "no-store" });
+      if (path.startsWith("/api/admin/")) {
+        const auth = await authRoute(request, env, path);
+        return auth || await adminApi(request, env, path);
+      }
+      if (request.method !== "GET" && !head) return response("Method not allowed", 405, { Allow: "GET, HEAD", "Cache-Control": "no-store" });
+      if (path === "/admin/app.js") return response(head ? null : adminScript, 200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
+      if (path === "/admin" || path === "/admin/" || path === "/admin/setup") {
+        const mode = await authenticated(request, env) ? "dashboard" : path === "/admin/setup" ? "setup" : "login";
+        return response(head ? null : adminPage.replace("__MODE__", mode), 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
+      }
+      if (path === "/" || path === "/api/release" || path === "/download" || path === "/checksums.txt") {
+        const pinned = url.searchParams.get("release");
+        if (pinned && !validId(pinned)) throw new HttpError(404, "Release not found.");
+        const release = pinned && path === "/checksums.txt" ? await getRelease(env, pinned) : (await current(env))?.release;
+        if (!release) throw new HttpError(503, "No release is available yet.");
+        const data = publicRelease(release);
+        if (path === "/api/release") return json(head ? null : data);
+        if (path === "/download") return response(null, 302, { Location: data.downloadUrl, "Cache-Control": "no-store" });
+        if (path === "/checksums.txt") return response(head ? null : `${release.sha256}  ${release.filename}\n`, 200, { "Content-Type": "text/plain; charset=utf-8", "Content-Disposition": 'attachment; filename="checksums.txt"', "Cache-Control": "no-store" });
+        const values: Record<string, string> = {
+          FILENAME: release.filename, SIZE: `${(release.bytes / 1024 / 1024).toLocaleString("en-US", { maximumFractionDigits: 1 })} MiB`,
+          FORMAT: release.filename.split(".").pop()!.toUpperCase(), SHA256: release.sha256, MD5: release.md5, DOWNLOAD_URL: data.downloadUrl,
+        };
+        const html = page.replace(/__([A-Z0-9_]+)__/g, (_, key: string) => escapeHtml(values[key] || ""));
+        return response(head ? null : html, 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+      }
+      const publicManifest = /^\/api\/releases\/([^/]+)$/.exec(path);
+      if (publicManifest && validId(publicManifest[1])) return json(head ? null : publicRelease(await getRelease(env, publicManifest[1])));
+      const download = /^\/downloads\/([^/]+)\/([^/]+)$/.exec(path);
+      if (!download || !validId(download[1])) throw new HttpError(404, "Page not found.");
+      const release = await getRelease(env, download[1]);
+      let name;
+      try { name = decodeURIComponent(download[2]); } catch { throw new HttpError(404, "File not found."); }
+      if (name !== release.filename) throw new HttpError(404, "File not found.");
+      const metadata = await env.DOWNLOADS.head(release.key);
+      if (!metadata || metadata.size !== release.bytes) throw new HttpError(503, "The download is temporarily unavailable. Please try again shortly.");
       const headers = new Headers({
-        "Content-Type": "application/vnd.rar",
-        "Content-Disposition": `attachment; filename="${release.filename}"`,
-        "Content-Length": String(metadata.size),
-        "Accept-Ranges": "bytes",
-        ETag: metadata.httpEtag,
-        "Last-Modified": metadata.uploaded.toUTCString(),
-        "Cache-Control": "public, max-age=3600, no-transform",
+        "Content-Type": contentType(release.filename), "Content-Disposition": disposition(release.filename),
+        "Content-Length": String(metadata.size), "Accept-Ranges": "bytes", ETag: metadata.httpEtag,
+        "Last-Modified": metadata.uploaded.toUTCString(), "Cache-Control": "public, max-age=31536000, immutable, no-transform",
       });
       const noneMatch = request.headers.get("If-None-Match");
       if (noneMatch && (noneMatch === "*" || noneMatch.split(",").some(tag => tag.trim().replace(/^W\//, "") === metadata.httpEtag))) {
@@ -74,30 +78,27 @@ export default {
         headers.delete("Content-Length");
         return response(null, 304, headers);
       }
-      // Range applies only to GET. A stale If-Range requests the full current file.
       const rangeHeader = head ? null : request.headers.get("Range");
       const ifRange = request.headers.get("If-Range");
       const rangeMatches = !ifRange || ifRange === metadata.httpEtag || (!ifRange.startsWith('"') && !ifRange.startsWith("W/") && Math.floor(metadata.uploaded.getTime() / 1000) <= Date.parse(ifRange) / 1000);
       const range = rangeHeader && rangeMatches ? byteRange(rangeHeader, metadata.size) : undefined;
-      if (range === null) return response(null, 416, {
-        "Content-Range": `bytes */${metadata.size}`, "Accept-Ranges": "bytes", "Cache-Control": "no-store",
-      });
+      if (range === null) return response(null, 416, { "Content-Range": `bytes */${metadata.size}`, "Accept-Ranges": "bytes", "Cache-Control": "no-store" });
       const status = range ? 206 : 200;
       if (range) {
         headers.set("Content-Length", String(range.length));
         headers.set("Content-Range", `bytes ${range.offset}-${range.offset + range.length - 1}/${metadata.size}`);
       }
       if (head) return response(null, status, headers);
-      // Pin the GET to the metadata ETag so a release replacement cannot mix versions.
-      const object = await env.DOWNLOADS.get(release.filename, {
-        onlyIf: { etagMatches: metadata.etag },
-        ...(range ? { range } : {}),
-      });
-      if (!object || !("body" in object)) return response("The release changed. Please retry the download.", 503, { "Retry-After": "1", "Cache-Control": "no-store" });
+      const object = await env.DOWNLOADS.get(release.key, { onlyIf: { etagMatches: metadata.etag }, ...(range ? { range } : {}) });
+      if (!object || !("body" in object)) throw new HttpError(503, "The file changed unexpectedly. Please retry.");
       return response(object.body, status, headers);
     } catch (error) {
-      console.error("R2 download failed", error);
-      return response(head ? null : "The download is temporarily unavailable. Please try again shortly.", 503, { "Retry-After": "60", "Cache-Control": "no-store" });
+      if (error instanceof HttpError) {
+        if (path.startsWith("/api/")) return json({ error: error.message }, error.status, error.status === 503 ? { "Retry-After": "60" } : {});
+        return response(head ? null : error.message, error.status, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...(error.status === 503 ? { "Retry-After": "60" } : {}) });
+      }
+      console.error("Request failed", error instanceof Error ? error.message : "Unknown error");
+      return json({ error: "The request could not be completed. Please retry." }, 503, { "Retry-After": "5" });
     }
   },
 } satisfies ExportedHandler<Env>;

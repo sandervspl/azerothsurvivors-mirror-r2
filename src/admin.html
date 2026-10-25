@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Manage mirror uploads</title>
+  <style>
+    :root{color-scheme:light;font:14px/1.6 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#242333;background:#f4f3f8}*{box-sizing:border-box}body{margin:0;padding:52px 20px}main{max-width:820px;margin:auto}h1{font-size:26px;letter-spacing:-.04em;line-height:1.3;margin:0 0 12px}h2{font-size:17px;letter-spacing:-.025em;margin:0 0 16px}p{margin:0 0 18px;color:#777487}a{color:#7050c5;text-underline-offset:3px}header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:26px}.eyebrow{font-size:10px;letter-spacing:.15em;font-weight:700;text-transform:uppercase;color:#777487;margin-bottom:12px}.panel{padding:30px;background:#fff;border:1px solid #e7e4ee;border-radius:16px;box-shadow:0 8px 36px #33284e08;margin-bottom:22px}.auth{max-width:420px;margin:48px auto}.muted,.help{color:#777487;font-size:12px}.help{margin:8px 0 20px}.field{display:block;font-weight:600;font-size:12px;margin:18px 0 7px}input{font:inherit;width:100%;min-width:0;border:1px solid #dcd7e7;border-radius:8px;padding:11px 12px;color:#242333;background:#fff}input[type=file]{padding:22px 16px;border-style:dashed;background:#fcfbfe;overflow:hidden}input[type=file]::file-selector-button{border:0;border-radius:5px;background:#eee8f9;color:#6040b3;padding:8px 10px;margin-right:12px;font:inherit;cursor:pointer}button{font:600 13px/1.5 inherit;cursor:pointer;border:0;border-radius:8px;padding:12px 18px;background:#7050c5;color:#fff}button:hover{background:#5c3cae}button:disabled{opacity:.5;cursor:default}button.secondary{background:#efecf5;color:#655e76}button.secondary:hover{background:#e5e0ef}.auth button[type=submit]{width:100%;margin-top:24px}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #b9a5eb;outline-offset:3px}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px}.message{margin:16px 0 0;font-size:13px;overflow-wrap:anywhere}.message.error{color:#a33249}.message.success{color:#237552}[hidden]{display:none!important}progress{width:100%;height:9px;accent-color:#7050c5;margin-top:22px}progress::-webkit-progress-bar{background:#efecf5;border-radius:8px}progress::-webkit-progress-value{background:#7050c5;border-radius:8px}.release{display:flex;justify-content:space-between;gap:20px;align-items:center;border-top:1px solid #eeebf3;padding:18px 0}.release:first-child{border-top:0}.release:last-child{padding-bottom:0}.release-info{min-width:0}.release strong{display:block;font-size:13px;overflow-wrap:anywhere}.release small{display:block;color:#777487;font-size:11px;margin-top:4px;overflow-wrap:anywhere}.release .current{color:#237552;background:#edf6f0;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:5px;flex-shrink:0}.release button{flex-shrink:0;font-size:11px;padding:8px 11px}.top-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-size:12px}.top-actions button{font-size:11px;padding:7px 11px}.empty{margin:0;font-size:13px}.history-title{display:flex;justify-content:space-between;gap:20px;align-items:center}.history-title button{font-size:11px;padding:6px 10px}#more{margin-top:20px}#file-description{overflow-wrap:anywhere}noscript{display:block;background:#fff;padding:25px;border-radius:12px}@media(max-width:560px){body{padding:28px 16px}.panel{padding:24px 20px}header{align-items:flex-start;flex-direction:column}h1{font-size:24px}.auth{margin:20px auto}.release{align-items:flex-start;gap:12px;flex-wrap:wrap}.release-info{flex-basis:100%}.top-actions{gap:14px}}
+  </style>
+  <script defer src="/admin/app.js"></script>
+</head>
+<body data-mode="__MODE__">
+  <main>
+    <noscript>Enable JavaScript to sign in and upload releases.</noscript>
+    <section id="login-view" class="panel auth" hidden>
+      <div class="eyebrow">Mirror administration</div><h1>Sign in to upload.</h1><p>Enter the admin password to manage releases.</p>
+      <form id="login-form"><label class="field" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" required maxlength="256"><button type="submit">Sign in</button></form>
+      <p id="login-message" class="message" role="status"></p><p class="help"><a href="/">Back to the download mirror</a></p>
+    </section>
+    <section id="setup-view" class="panel auth" hidden>
+      <div class="eyebrow">One-time setup</div><h1>Set your upload password.</h1><p>This password protects uploads and release history. Use at least 12 characters.</p>
+      <form id="setup-form"><label class="field" for="new-password">Password</label><input id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="256"><label class="field" for="confirm-password">Confirm password</label><input id="confirm-password" type="password" autocomplete="new-password" required minlength="12" maxlength="256"><button type="submit">Set password</button></form>
+      <p id="setup-message" class="message" role="status"></p><p class="help">Already set up? <a href="/admin">Sign in</a></p>
+    </section>
+    <section id="dashboard-view" hidden>
+      <header><div><div class="eyebrow">Mirror administration</div><h1>Manage releases.</h1></div><div class="top-actions"><a href="/" target="_blank" rel="noopener">View mirror ↗</a><button id="logout" class="secondary" type="button">Sign out</button></div></header>
+      <section class="panel" aria-labelledby="upload-title">
+        <h2 id="upload-title">Upload a new version</h2><p class="help">The new version becomes the public download after the upload finishes. Previous versions stay available.</p>
+        <form id="upload-form"><label class="field" for="archive">Archive</label><input id="archive" type="file" accept=".rar,.zip,.7z" required><p id="file-description" class="help">RAR, ZIP, or 7z · up to 10 GiB</p><label class="field" for="version">Version label <span class="muted">(optional)</span></label><input id="version" type="text" maxlength="80" placeholder="For example: 2026-10-25"><div class="actions"><button id="upload-button" type="submit" disabled>Upload &amp; publish</button><button id="cancel-upload" class="secondary" type="button" hidden>Discard unfinished upload</button></div></form>
+        <progress id="progress" max="100" value="0" aria-label="Upload progress" hidden></progress><p id="upload-message" class="message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="panel" aria-labelledby="history-title"><div class="history-title"><h2 id="history-title">Release history</h2><button id="refresh" class="secondary" type="button">Refresh</button></div><div id="releases"><p class="empty">Loading releases…</p></div><button id="more" class="secondary" type="button" hidden>Load older releases</button><p id="history-message" class="message" role="status"></p></section>
+    </section>
+  </main>
+</body>
+</html>

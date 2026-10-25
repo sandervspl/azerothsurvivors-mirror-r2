@@ -1,0 +1,34 @@
+{
+  "base": "https://azerothsurvivors-release-staging.sandervispoel.workers.dev",
+  "startedAt": "2026-10-25T10:54:58.751Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "Wrong-password feedback, successful sign-in, and protected session cookie",
+      "passed": true
+    },
+    {
+      "name": "Network interruption after part one keeps the existing release live and offers resume",
+      "passed": true
+    },
+    {
+      "name": "Reloaded page resumes without resending part one; browser SHA-256 and MD5 match independent Node hashes and full download",
+      "passed": true
+    },
+    {
+      "name": "Desktop and 375px mobile upload/history layout renders without horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "Release activation rolls back the mirror and sign-out returns to the login screen",
+      "passed": true
+    }
+  ],
+  "published": {
+    "id": "1792925699866-b71a0da3-1b5f-46b0-be92-f9e02457abd9",
+    "bytes": 34603145,
+    "sha256": "c71e136e7d67ddc23fb8dabeb0d63b4b9873270e8618d6ee8cf3af068507252b",
+    "md5": "a434050bdb4fc9cc64120cb614f2a520"
+  },
+  "finishedAt": "2026-10-25T10:55:29.935Z"
+}

@@ -1,59 +1,90 @@
-import { open, readFile, mkdir, writeFile } from 'node:fs/promises';
-import { createReadStream } from 'node:fs';
-import { createHash, randomBytes } from 'node:crypto';
-import { resolve } from 'node:path';
+import { open, readFile, mkdir, writeFile, unlink } from 'node:fs/promises';
+import { basename, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { apiClient, ApiError } from './api-client.mjs';
 
-const secretPath = new URL('../.local/upload-secret.json', import.meta.url);
-if (process.argv[2] === 'init') {
-  await mkdir(new URL('../.local/', import.meta.url), { recursive: true });
-  await writeFile(secretPath, JSON.stringify({ UPLOAD_TOKEN: randomBytes(32).toString('hex') }), { flag: 'wx' });
-  console.log('Created local upload credential. Deploy tools/upload with --secrets-file pointing to .local/upload-secret.json.');
-  process.exit(0);
-}
-const [base, filePath] = process.argv.slice(2);
-if (!base || !filePath) throw new Error('Usage: node scripts/upload.mjs <temporary-worker-url> <archive-path>');
-const expectedHash = '971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8';
-const hash = createHash('sha256');
-for await (const chunk of createReadStream(filePath)) hash.update(chunk);
-if (hash.digest('hex') !== expectedHash) throw new Error('Archive differs from the documented release. Update release metadata before uploading.');
-const { UPLOAD_TOKEN } = JSON.parse(await readFile(secretPath, 'utf8'));
-const file = await open(resolve(filePath));
-const size = (await file.stat()).size;
-async function call(path, method, body) {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const result = await fetch(new URL(path, base), {
-        method, headers: { Authorization: `Bearer ${UPLOAD_TOKEN}` }, body,
-        signal: AbortSignal.timeout(180000),
-      });
-      if (!result.ok) throw new Error(`Upload ${path.split('?')[0]} returned ${result.status}: ${await result.text()}`);
-      return result.status === 204 ? null : await result.json();
-    } catch (error) { if (attempt === 2) throw error; console.log(`Retrying ${path.split('?')[0]}...`); }
-  }
-}
-const { uploadId } = await call('/start', 'POST');
-const query = `uploadId=${encodeURIComponent(uploadId)}`;
-try {
-  const parts = [];
-  const chunkSize = 32 * 1024 * 1024;
-  for (let position = 0, number = 1; position < size; position += chunkSize, number++) {
-    const length = Math.min(chunkSize, size - position);
-    const buffer = Buffer.alloc(length);
-    let read = 0;
-    while (read < length) {
-      const { bytesRead } = await file.read(buffer, read, length - read, position + read);
-      if (!bytesRead) throw new Error('Unexpected end of archive');
-      read += bytesRead;
+export async function publishArchive({ base, path, version = '', password, resumePath, progress = console.log }) {
+  const client = apiClient(base);
+  await client.login(password);
+  const actualPath = path instanceof URL ? fileURLToPath(path) : resolve(path);
+  const file = await open(actualPath);
+  const size = (await file.stat()).size;
+  const name = basename(actualPath);
+  let upload;
+  try {
+    if (resumePath) {
+      try { upload = JSON.parse(await readFile(resumePath, 'utf8')); }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
     }
-    parts.push(await call(`/part?${query}&number=${number}`, 'PUT', buffer));
-    console.log(`Uploaded part ${number}/${Math.ceil(size / chunkSize)} (${Math.round((position + length) / size * 100)}%)`);
-  }
-  const result = await call(`/complete?${query}`, 'POST', JSON.stringify(parts));
-  if (result.size !== size) throw new Error('Uploaded size mismatch');
-  await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
-  await writeFile(new URL('../artifacts/upload.json', import.meta.url), JSON.stringify({ ...result, sha256: expectedHash, verifiedAt: new Date().toISOString() }, null, 2) + '\n');
-  console.log(`Completed: ${result.size} bytes uploaded to R2.`);
-} catch (error) {
-  await call(`/abort?${query}`, 'POST').catch(() => {});
-  throw error;
-} finally { await file.close(); }
+    if (upload && (upload.filename !== name || upload.bytes !== size || upload.base !== new URL(base).origin)) throw new Error('Saved upload belongs to another archive or host. Use a different resume file.');
+    if (!upload) {
+      const history = await client.request('/api/admin/releases');
+      const started = await client.request('/api/admin/uploads', { method: 'POST', json: { filename: name, bytes: size, version, expectedCurrentId: history.current } });
+      upload = { id: started.id, filename: name, bytes: size, base: new URL(base).origin };
+      if (resumePath) await writeFile(resumePath, JSON.stringify(upload), { mode: 0o600 });
+    }
+    const state = await client.request('/api/admin/uploads/' + upload.id);
+    const known = new Map(state.parts.map(part => [part.partNumber, part.etag]));
+    const sha256 = createHash('sha256'), md5 = createHash('md5');
+    for (let offset = 0, number = 1; offset < size; offset += state.partSize, number++) {
+      const length = Math.min(state.partSize, size - offset);
+      const bytes = Buffer.alloc(length);
+      let read = 0;
+      while (read < length) {
+        const { bytesRead } = await file.read(bytes, read, length - read, offset + read);
+        if (!bytesRead) throw new Error('Unexpected end of file');
+        read += bytesRead;
+      }
+      sha256.update(bytes); md5.update(bytes);
+      const partMd5 = createHash('md5').update(bytes).digest('hex');
+      if (known.has(number)) {
+        if (known.get(number) !== partMd5) throw new Error('The selected file differs from the saved upload. Start a new upload.');
+      } else {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const part = await client.request('/api/admin/uploads/' + upload.id + '/parts/' + number, { method: 'PUT', bytes, md5: partMd5 });
+            if (part.etag !== partMd5) throw new Error('R2 part verification failed');
+            break;
+          } catch (error) { if (attempt === 2 || error instanceof ApiError && error.status < 500 && error.status !== 422) throw error; }
+        }
+      }
+      progress('Verified part ' + number + '/' + Math.ceil(size / state.partSize) + ' (' + Math.round((offset + length) / size * 100) + '%)');
+    }
+    const result = await client.request('/api/admin/uploads/' + upload.id + '/complete', { method: 'POST', json: { sha256: sha256.digest('hex'), md5: md5.digest('hex') } });
+    if (resumePath) await unlink(resumePath).catch(() => {});
+    return result.release;
+  } finally { await file.close(); }
+}
+
+async function hiddenPassword() {
+  if (process.env.MIRROR_ADMIN_PASSWORD) return process.env.MIRROR_ADMIN_PASSWORD;
+  if (!process.stdin.isTTY) throw new Error('Run in an interactive terminal, or supply MIRROR_ADMIN_PASSWORD through your secret manager.');
+  process.stdout.write('Admin password: ');
+  process.stdin.setRawMode(true); process.stdin.resume(); process.stdin.setEncoding('utf8');
+  return new Promise((resolvePassword, reject) => {
+    let value = '';
+    const finish = () => { process.stdin.setRawMode(false); process.stdin.pause(); process.stdin.off('data', onData); process.stdout.write('\n'); };
+    const onData = text => {
+      for (const char of text) {
+        if (char === '\u0003') { finish(); reject(new Error('Cancelled')); return; }
+        if (char === '\r' || char === '\n') { finish(); resolvePassword(value); return; }
+        if (char === '\u007f' || char === '\b') value = value.slice(0, -1);
+        else if (char >= ' ' && value.length < 256) value += char;
+      }
+    };
+    process.stdin.on('data', onData);
+  });
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    const [path, version = '', base = 'https://azerothsurvivors-mirror.sandervspl.dev'] = process.argv.slice(2);
+    if (!path) throw new Error('Usage: npm run upload -- <archive-path> [version-label] [mirror-url]');
+    await mkdir(new URL('../.local/', import.meta.url), { recursive: true });
+    const resumePath = new URL('../.local/cli-upload.json', import.meta.url);
+    const release = await publishArchive({ base, path, version, password: await hiddenPassword(), resumePath });
+    await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
+    await writeFile(new URL('../artifacts/upload.json', import.meta.url), JSON.stringify({ ...release, verifiedAt: new Date().toISOString() }, null, 2) + '\n');
+    console.log('Published ' + release.filename + '\nSHA-256: ' + release.sha256 + '\nMD5: ' + release.md5 + '\n' + new URL(release.downloadUrl, base));
+  } catch (error) { console.error(error.message); process.exitCode = 1; }
+}

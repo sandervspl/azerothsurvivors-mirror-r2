@@ -1,0 +1,59 @@
+{
+  "base": "https://azerothsurvivors-release-staging.sandervispoel.workers.dev",
+  "startedAt": "2026-10-25T11:04:22.077Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "Upload APIs are locked without a valid session; setup token is required and single use",
+      "passed": true
+    },
+    {
+      "name": "Cross-origin changes and unsafe upload metadata are rejected",
+      "passed": true
+    },
+    {
+      "name": "Invalid parts and incomplete publication cannot change the current release",
+      "passed": true
+    },
+    {
+      "name": "A new CLI client resumes a multipart upload and publishes independently verified hashes",
+      "passed": true
+    },
+    {
+      "name": "Same-name uploads leave the previous version public until all parts are complete",
+      "passed": true
+    },
+    {
+      "name": "Publication updates the mirror while old immutable downloads remain intact",
+      "passed": true
+    },
+    {
+      "name": "A concurrent publication is archived and returns a conflict instead of overwriting current",
+      "passed": true
+    },
+    {
+      "name": "Rollback restores the old file and hashes; stale activation and aborts are safe",
+      "passed": true
+    },
+    {
+      "name": "Pinned ranges, cache revalidation, checksums, and private paths behave correctly",
+      "passed": true
+    }
+  ],
+  "releases": [
+    {
+      "id": "1792926262869-0104d611-438d-4721-974f-f80357972bd2",
+      "bytes": 34603145,
+      "sha256": "c71e136e7d67ddc23fb8dabeb0d63b4b9873270e8618d6ee8cf3af068507252b",
+      "md5": "a434050bdb4fc9cc64120cb614f2a520",
+      "resumedParts": 1
+    },
+    {
+      "id": "1792926286837-73bb8de9-e8a3-485c-9e30-737676c3e904",
+      "bytes": 34603145,
+      "sha256": "986a9c76e003177b89496dd5fee650924c91366fcb55cb1d913ab6b3554f06f0",
+      "md5": "4e863887eaeebdfef810feb970d0f1c5"
+    }
+  ],
+  "finishedAt": "2026-10-25T11:05:28.426Z"
+}
