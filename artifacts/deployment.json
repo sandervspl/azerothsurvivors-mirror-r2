@@ -1,0 +1,20 @@
+{
+  "site": "https://azerothsurvivors.sandervispoel.workers.dev",
+  "repository": "https://github.com/sandervspl/azerothsurvivors-mirror-r2",
+  "worker": "azerothsurvivors",
+  "versionId": "61e5bf79-1a42-434f-8a91-46d638c71874",
+  "bucket": "azerothsurvivors-downloads",
+  "bucketAccess": "Private; public downloads stream through the Worker",
+  "download": "https://azerothsurvivors.sandervispoel.workers.dev/download",
+  "file": "AzerothSurvivorsWindowsNew.rar",
+  "bytes": 760497456,
+  "sha256": "971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8",
+  "access": "Public; no login required",
+  "customDomain": null,
+  "temporaryUploader": {
+    "worker": "azerothsurvivors-upload",
+    "deleted": true,
+    "postDeletionHttpStatus": 404,
+    "localCredentialRemoved": true
+  }
+}

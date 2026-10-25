@@ -1,0 +1,41 @@
+{
+  "base": "https://azerothsurvivors.sandervispoel.workers.dev",
+  "startedAt": "2026-10-25T10:03:54.011Z",
+  "checks": [
+    {
+      "name": "Public page, release metadata, checksum file, and download links agree",
+      "passed": true
+    },
+    {
+      "name": "Download headers support saving and resuming the exact archive",
+      "passed": true
+    },
+    {
+      "name": "A disconnected download resumes to the complete SHA-256 verified file",
+      "passed": true
+    },
+    {
+      "name": "Open-ended ranges and oversized range ends resolve to the file boundary",
+      "passed": true
+    },
+    {
+      "name": "Invalid and unsatisfiable ranges return 416",
+      "passed": true
+    },
+    {
+      "name": "Cache revalidation works and stale If-Range restarts the full download",
+      "passed": true
+    },
+    {
+      "name": "Unknown paths and unsupported methods fail clearly",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "download": {
+    "bytes": 760497456,
+    "sha256": "971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8",
+    "rangeRequests": 23
+  },
+  "finishedAt": "2026-10-25T10:05:34.550Z"
+}

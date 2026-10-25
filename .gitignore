@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.cloudflare/
+.wrangler/
+.local/
+.env*
+.dev.vars*
+*.rar
+*.log
