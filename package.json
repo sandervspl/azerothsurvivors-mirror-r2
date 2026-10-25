@@ -9,6 +9,7 @@
     "typecheck": "cf workers types && tsc --noEmit && tsc -p tsconfig.client.json",
     "verify": "node scripts/verify.mjs",
     "upload": "node scripts/upload.mjs",
+    "prepare": "node scripts/prepare-release.mjs",
     "verify:publishing": "node scripts/verify-publishing.mjs",
     "verify:browser": "node scripts/verify-browser.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",

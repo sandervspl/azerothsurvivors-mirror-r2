@@ -6,6 +6,14 @@ Upload and release management: https://azerothsurvivors-mirror.sandervspl.dev/ad
 
 ## Upload a new version
 
+To prepare a clean ZIP from an installed game folder, use 7-Zip and the preparation command:
+
+~~~powershell
+npm run prepare -- 'C:\Users\Sander\Documents\AzerothSurvivors' '0.116.0' 'C:\Users\Sander\Downloads\AzerothSurvivors-Windows-0.116.0.zip'
+~~~
+
+It packages `AzerothSurvivors.exe` and `Data/` inside one game folder. Local `benilla-config/` settings, character state, and installed addons are excluded, and the source folder is untouched. The command refuses to overwrite existing output, tests archive integrity, and compares every archived file against the source SHA-256, MD5, and size. It saves `.sha256`, `.md5`, and `.release.json` sidecars beside the ZIP plus an evidence receipt in `artifacts/prepared-release-{version}.json`. Preparation does not upload or change the current public version. The default 7-Zip location is `C:\Program Files\7-Zip\7z.exe` on Windows (`7z` elsewhere); set `SEVEN_ZIP` for another executable location.
+
 Sign in at the admin page, choose a RAR, ZIP, or 7z archive (up to 10 GiB), optionally enter a version label, and click **Upload & publish**. SHA-256 and MD5 are calculated automatically while reading the file in 32 MiB chunks. Each chunk is checked against the MD5 ETag returned by R2 before publication.
 
 The archive, hashes, filename, and size are stored together in a release manifest. The public page reads the current manifest, so uploading a new version requires no code changes or deployment.

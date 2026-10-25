@@ -1,0 +1,85 @@
+{
+  "version": "0.116.0",
+  "filename": "AzerothSurvivors-Windows-0.116.0.zip",
+  "bytes": 890076832,
+  "sha256": "72a68c74cf98052d9c7a0bb0ebdac647510500ca48e8298bdb9f2fff313c7fbe",
+  "md5": "568ddf4f175d40d0ec5348ca9f7284a4",
+  "preparedAt": "2026-10-25T20:01:24.810Z",
+  "readyForUpload": true,
+  "uploaded": false,
+  "included": [
+    "AzerothSurvivors.exe",
+    "Data/"
+  ],
+  "excluded": [
+    "benilla-config/ (local configuration, character state, and installed addons)"
+  ],
+  "uncompressedBytes": 1792922787,
+  "verification": {
+    "archiveIntegrity": "7-Zip test passed",
+    "archiveEntries": 10,
+    "contentComparison": "Every archived file matched its source SHA-256, MD5, size, and unchanged source metadata"
+  },
+  "files": [
+    {
+      "path": "AzerothSurvivors/AzerothSurvivors.exe",
+      "bytes": 145280000,
+      "sha256": "d57dbb9f6b325e502204940ac7e3b82bab2ea7db6022c68a9b2bebb91c556bc9",
+      "md5": "291d6fb5c69904f104249cb6af0b6211"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-2.MPQ",
+      "bytes": 4690878,
+      "sha256": "366edee41642a5dda22ed90cc252b543ee375755b7e8bee81e2a6cd59fd7b286",
+      "md5": "e6c9d3024366065f65c90aba8416b93f"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-3.MPQ",
+      "bytes": 2580491,
+      "sha256": "75c35ca5b8075197252581e301e8900143007fdf37b493ad271ae1bd39f95a29",
+      "md5": "274bfa0ef58640c1872ce9e406046d4a"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-4.MPQ",
+      "bytes": 22769233,
+      "sha256": "2e895e0e0ff6a4781d0e0aaa6ea7d32ed1fe36841e17806fe1855cb880d18865",
+      "md5": "b33652827cc9a0ecc4c17b92910bebfe"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-5.MPQ",
+      "bytes": 267019039,
+      "sha256": "5008e56873718b468fa5ae1b697dcbe4f5da9ffe6c793f3ef9939dbd7716f3d8",
+      "md5": "506f6a4832eaa0ebe040170b83583825"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-6.MPQ",
+      "bytes": 212228,
+      "sha256": "cad6ff59b5df028a507581befb836fce07894057e15fe63d9fdc553a95b7ceb5",
+      "md5": "dc94777f0a55b3702792035a37123015"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-7.MPQ",
+      "bytes": 276649,
+      "sha256": "f5fb15b181cf01cc6b5cf2ee9948a27ecc4ba27bab9a8bec584df4381932aae6",
+      "md5": "2f88b28efebd4ce7a68f48d990c8e0b0"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-8.MPQ",
+      "bytes": 4155417,
+      "sha256": "ae3aaa29cadb7aeba8255f5b4a8305c7cbecfe8f0d3ed9646522113d16c3e12e",
+      "md5": "f2c889d754ce6782b6c8f623f4324161"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch-9.MPQ",
+      "bytes": 5739608,
+      "sha256": "ffff8ea890bdaf91a1680543ac60106db92132bc2210105279610fa73661a524",
+      "md5": "10599132369572ce156513e2537fc0d3"
+    },
+    {
+      "path": "AzerothSurvivors/Data/patch.MPQ",
+      "bytes": 1340199244,
+      "sha256": "49473c3cd0f47cd949e579240ea694c793aab813549920f1073ef73017364adf",
+      "md5": "63e7804bd2d8b1758448d1e05f1b58cb"
+    }
+  ]
+}
