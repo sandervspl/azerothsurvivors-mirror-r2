@@ -4,32 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Download mirror with file verification checksums.">
-  <meta name="theme-color" content="#f4f3f8">
+  <meta name="theme-color" content="#15130f">
   <title>Download mirror</title>
   <style>
-    :root { color-scheme: light; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #242333; background: #f4f3f8; }
+    :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #e8dfcc; background: #15130f; }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 96px 24px; font-size: 14px; line-height: 1.5; }
+    body { margin: 0; padding: 96px 24px; font-size: 14px; line-height: 1.5; background: radial-gradient(ellipse at 50% 0, #75532b1a, transparent 65%); }
     main { max-width: 820px; margin: 0 auto; }
-    .heading { display: flex; align-items: center; gap: 10px; margin: 0 0 20px 4px; font-size: 11px; font-weight: 650; text-transform: uppercase; color: #777487; }
-    .heading::before { content: ""; width: 8px; height: 8px; background: #7655ce; border-radius: 2px; }
-    .file { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 36px #33284e08; border: 1px solid #e7e4ee; }
+    .heading { font-family: Georgia, "Times New Roman", serif; display: flex; align-items: center; gap: 10px; margin: 0 0 20px 4px; font-size: 11px; font-weight: 650; text-transform: uppercase; color: #c1a36e; }
+    .heading::before { content: ""; width: 8px; height: 8px; background: #b88d4a; border: 1px solid #e4c48a; border-radius: 0; transform: rotate(45deg); }
+    .file { background: linear-gradient(135deg, #29231b, #211d17); border-radius: 5px; overflow: hidden; box-shadow: 0 14px 40px #0005, inset 0 0 0 1px #0006; border: 1px solid #6b5231; border-top: 2px solid #a07a43; }
     .download { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 32px; padding: 38px 36px; }
     .file-info { display: flex; align-items: flex-start; gap: 18px; min-width: 0; }
-    .file-icon { flex: 0 0 46px; width: 46px; height: 54px; background: #f0ebfb; color: #7655ce; border-radius: 8px; display: grid; place-items: center; }
+    .file-icon { flex: 0 0 46px; width: 46px; height: 54px; background: linear-gradient(#403322, #2a231a); color: #dfb971; border: 1px solid #7a5e34; border-radius: 3px; box-shadow: inset 0 0 0 1px #0004; display: grid; place-items: center; }
     .file-icon svg { width: 23px; height: 27px; }
-    h1 { font-size: 22px; line-height: 1.4; font-weight: 600; margin: -3px 0 9px; overflow-wrap: anywhere; }
-    .metadata { display: flex; align-items: center; gap: 11px; color: #777487; font-size: 12px; margin: 0; }
-    .format { font-size: 10px; font-weight: 650; background: #f2f1f6; padding: 3px 7px; border-radius: 4px; color: #6d687d; }
-    .button { display: flex; align-items: center; justify-content: center; gap: 22px; background: #7050c5; color: #fff; text-decoration: none; padding: 14px 21px; border-radius: 9px; font-weight: 600; font-size: 13px; transition: background .15s; }
+    h1 { font-family: Georgia, "Times New Roman", serif; color: #eddbb4; font-size: 22px; line-height: 1.4; font-weight: 600; margin: -3px 0 9px; overflow-wrap: anywhere; }
+    .metadata { display: flex; align-items: center; gap: 11px; color: #b1a58f; font-size: 12px; margin: 0; }
+    .format { font-size: 10px; font-weight: 650; background: #30291f; padding: 3px 7px; border: 1px solid #57452e; border-radius: 2px; color: #cbb17f; }
+    .button { display: flex; align-items: center; justify-content: center; gap: 22px; background: linear-gradient(#8b382b, #65251e); color: #fae3b5; border: 1px solid #b68c4b; box-shadow: inset 0 1px #dbac6155, inset 0 -2px #240b0755, 0 2px 8px #0004; text-decoration: none; padding: 14px 21px; border-radius: 3px; font-weight: 600; font-size: 13px; transition: filter .15s; }
     .button svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .button:hover { background: #5c3cae; }
-    .button:focus-visible { outline: 3px solid #b9a5eb; outline-offset: 4px; }
-    .checksums { margin: 0; padding: 25px 36px 29px; border-top: 1px solid #eae7f0; background: #fcfbfe; display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 18px 22px; align-items: baseline; }
-    dt { font-size: 10px; font-weight: 650; color: #8b849b; }
+    .button:hover { filter: brightness(1.18); }
+    .button:focus-visible { outline: 3px solid #e2bd7a; outline-offset: 4px; }
+    .checksums { margin: 0; padding: 25px 36px 29px; border-top: 1px solid #55432c; background: #191713; display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 18px 22px; align-items: baseline; }
+    dt { font-size: 10px; font-weight: 650; color: #b99c67; }
     dd { margin: 0; min-width: 0; }
-    code { font: 11px/1.9 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: #655e76; overflow-wrap: anywhere; user-select: all; }
-    ::selection { background: #e5dafa; color: #3e286f; }
+    code { font: 11px/1.9 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: #c6bdab; overflow-wrap: anywhere; user-select: all; }
+    ::selection { background: #75532b; color: #fff1ce; }
     @media (max-width: 640px) {
       body { padding: 48px 18px; }
       .download { grid-template-columns: 1fr; padding: 27px 24px; gap: 25px; }

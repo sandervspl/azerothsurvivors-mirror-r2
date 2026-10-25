@@ -1,19 +1,30 @@
 {
-  "verifiedAt": "2026-10-25T10:11:27.919Z",
-  "method": "T3 html_preview of the violet and white mirror redesign at desktop and phone widths. Native download link and both selectable checksums verified; no horizontal overflow.",
+  "verifiedAt": "2026-10-25T11:25:31.446Z",
+  "theme": "Warcraft-inspired dark stone, bronze trim, parchment text, and deep red buttons",
+  "method": "T3 html_preview of the mirror hydrated from current release metadata, plus the admin login markup. Desktop and narrow mobile renders inspected; spacing remains normal.",
   "checks": [
     {
+      "page": "mirror",
       "width": 900,
       "status": "fulfilled",
       "result": [
-        "{\"width\":900,\"contentHeight\":486,\"capturedHeight\":486,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":900,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":900,\"height\":486}}"
+        "{\"width\":900,\"contentHeight\":489,\"capturedHeight\":489,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":900,\\\"overflow\\\":false,\\\"letterSpacing\\\":[\\\"normal\\\",\\\"normal\\\",\\\"normal\\\",\\\"normal\\\",\\\"normal\\\"],\\\"downloadLinks\\\":1}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":900,\"height\":489}}"
       ]
     },
     {
+      "page": "mirror",
       "width": 320,
       "status": "fulfilled",
       "result": [
-        "{\"width\":320,\"contentHeight\":523,\"capturedHeight\":523,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":320,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":523}}"
+        "{\"width\":320,\"contentHeight\":528,\"capturedHeight\":528,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":320,\\\"overflow\\\":false,\\\"letterSpacing\\\":[\\\"normal\\\",\\\"normal\\\",\\\"normal\\\",\\\"normal\\\",\\\"normal\\\"],\\\"downloadLinks\\\":1}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":528}}"
+      ]
+    },
+    {
+      "page": "admin login",
+      "width": 375,
+      "status": "fulfilled",
+      "result": [
+        "{\"width\":375,\"contentHeight\":458,\"capturedHeight\":458,\"consoleMessages\":[],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":375,\"height\":458}}"
       ]
     }
   ]
