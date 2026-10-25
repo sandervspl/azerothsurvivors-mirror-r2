@@ -2,6 +2,7 @@ import page from "./page.html?raw";
 import adminPage from "./admin.html?raw";
 import adminScript from "virtual:admin-client";
 import { adminApi } from "./admin-api";
+import { initializeAnalytics, recordDownload } from "./analytics";
 import { authenticated, authRoute } from "./auth";
 import { contentType, disposition, escapeHtml, HttpError, json, response, validId, type Env } from "./core";
 import { current, getRelease, publicRelease } from "./releases";
@@ -23,6 +24,7 @@ function byteRange(value: string, size: number): { offset: number; length: numbe
 
 export default {
   async fetch(request, env) {
+    initializeAnalytics(env);
     const url = new URL(request.url);
     const path = url.pathname;
     const head = request.method === "HEAD";
@@ -91,6 +93,7 @@ export default {
       if (head) return response(null, status, headers);
       const object = await env.DOWNLOADS.get(release.key, { onlyIf: { etagMatches: metadata.etag }, ...(range ? { range } : {}) });
       if (!object || !("body" in object)) throw new HttpError(503, "The file changed unexpectedly. Please retry.");
+      if (!range || range.offset === 0 && !rangeHeader?.startsWith("bytes=-")) recordDownload(env, release);
       return response(object.body, status, headers);
     } catch (error) {
       if (error instanceof HttpError) {

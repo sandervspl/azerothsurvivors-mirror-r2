@@ -1,0 +1,455 @@
+{
+  "base": "https://azerothsurvivors-release-staging.sandervispoel.workers.dev",
+  "startedAt": "2026-10-25T12:29:23.187Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "Stats require authentication and reject unsupported periods",
+      "passed": true
+    },
+    {
+      "name": "Empty or existing statistics have UTC day buckets and no private fields",
+      "passed": true
+    },
+    {
+      "name": "Older and current versions return independently verified bytes",
+      "passed": true
+    },
+    {
+      "name": "HEAD, resumed/suffix ranges, 304, invalid ranges, aliases, and pages do not add starts",
+      "passed": true
+    },
+    {
+      "name": "Actual Analytics Engine events match admin totals and immutable release versions",
+      "passed": true
+    },
+    {
+      "name": "Admin charts, period selection, daily table, and version counts work in browser",
+      "passed": true
+    },
+    {
+      "name": "Query errors and empty states render honestly without blocking release management",
+      "passed": true
+    },
+    {
+      "name": "Sign-out revokes access to the stats API",
+      "passed": true
+    }
+  ],
+  "requests": [
+    {
+      "path": "/api/admin/stats",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/downloads/1792931365270-7469277d-28e8-4359-8d55-7a649e5ea742/analytics-1792931363187-1.zip",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "range": "bytes=0-127",
+      "status": 206
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "HEAD",
+      "status": 200
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "range": "bytes=128-255",
+      "status": 206
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "range": "bytes=-999999999",
+      "status": 206
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "range": "bytes=-128",
+      "status": 206
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "status": 304
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "method": "GET",
+      "range": "bytes=999999999-",
+      "status": 416
+    },
+    {
+      "path": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip-wrong",
+      "method": "GET",
+      "status": 404
+    },
+    {
+      "path": "/download",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/download",
+      "method": "HEAD",
+      "status": 302
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/release",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "before": {
+    "days": 30,
+    "timezone": "UTC",
+    "generatedAt": "2026-10-25T12:29:22.454Z",
+    "totals": {
+      "today": 0,
+      "last7Days": 0,
+      "last30Days": 0,
+      "selected": 0
+    },
+    "daily": [
+      {
+        "date": "2026-09-26",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-27",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-28",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-29",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-30",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-01",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-02",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-03",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-04",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-05",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-06",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-07",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-08",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-09",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-10",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-11",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-12",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-13",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-14",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-15",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-16",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-17",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-18",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-19",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-20",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-21",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-22",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-23",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-24",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-25",
+        "downloads": 0
+      }
+    ],
+    "versions": []
+  },
+  "engine": {
+    "meta": [
+      {
+        "name": "releaseId",
+        "type": "String"
+      },
+      {
+        "name": "version",
+        "type": "String"
+      },
+      {
+        "name": "downloads",
+        "type": "UInt64"
+      }
+    ],
+    "data": [
+      {
+        "releaseId": "1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20",
+        "version": "0.115.0 analytics 1792931363187",
+        "downloads": "2"
+      },
+      {
+        "releaseId": "1792931365270-7469277d-28e8-4359-8d55-7a649e5ea742",
+        "version": "0.116.0 · long version é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新",
+        "downloads": "1"
+      }
+    ],
+    "rows": 2,
+    "rows_before_limit_at_least": 3
+  },
+  "stats": {
+    "days": 30,
+    "timezone": "UTC",
+    "generatedAt": "2026-10-25T12:30:29.132Z",
+    "totals": {
+      "today": 3,
+      "last7Days": 3,
+      "last30Days": 3,
+      "selected": 3
+    },
+    "daily": [
+      {
+        "date": "2026-09-26",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-27",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-28",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-29",
+        "downloads": 0
+      },
+      {
+        "date": "2026-09-30",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-01",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-02",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-03",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-04",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-05",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-06",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-07",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-08",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-09",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-10",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-11",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-12",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-13",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-14",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-15",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-16",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-17",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-18",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-19",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-20",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-21",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-22",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-23",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-24",
+        "downloads": 0
+      },
+      {
+        "date": "2026-10-25",
+        "downloads": 3
+      }
+    ],
+    "versions": [
+      {
+        "id": "1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20",
+        "version": "0.115.0 analytics 1792931363187",
+        "downloads": 2
+      },
+      {
+        "id": "1792931365270-7469277d-28e8-4359-8d55-7a649e5ea742",
+        "version": "0.116.0 · long version é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新",
+        "downloads": 1
+      }
+    ]
+  },
+  "releases": [
+    {
+      "id": "1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20",
+      "filename": "analytics-1792931363187-0.zip",
+      "bytes": 131072,
+      "sha256": "7b7583e85bd0ef91ad7e9a9464743c1962dd60f28e5f07c1460f9ab9dfa3474b",
+      "md5": "b4f761a2fe34f9a6af23fe07d6a09306",
+      "version": "0.115.0 analytics 1792931363187",
+      "published": "2026-10-25T12:29:24.290Z",
+      "downloadUrl": "/downloads/1792931363046-89ab8dae-d300-4ed9-bce0-be1cfb757f20/analytics-1792931363187-0.zip",
+      "verifiedBytes": 131072
+    },
+    {
+      "id": "1792931365270-7469277d-28e8-4359-8d55-7a649e5ea742",
+      "filename": "analytics-1792931363187-1.zip",
+      "bytes": 131185,
+      "sha256": "48a5b6c903209d0ed92fba7f1951a2cbeceecb6895e8f7d4d1b73006e2a1fec8",
+      "md5": "659520d48ddf7da67dc61a20b27eb0da",
+      "version": "0.116.0 · long version é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新é新",
+      "published": "2026-10-25T12:29:26.327Z",
+      "downloadUrl": "/downloads/1792931365270-7469277d-28e8-4359-8d55-7a649e5ea742/analytics-1792931363187-1.zip",
+      "verifiedBytes": 131185
+    }
+  ],
+  "finishedAt": "2026-10-25T12:30:36.899Z"
+}

@@ -6,6 +6,9 @@ export default defineConfig({ worker: {
   workersDev: true,
   env: {
     DOWNLOADS: bindings.r2({ name: "azerothsurvivors-release-staging" }),
+    DOWNLOAD_ANALYTICS: bindings.analyticsEngineDataset({ name: "azerothsurvivors_downloads_staging" }),
+    ANALYTICS_SQL: { type: "analytics" },
+    ANALYTICS_DATASET: bindings.text("azerothsurvivors_downloads_staging"),
     ADMIN_SETUP_HASH: bindings.secret(),
     LOGIN_LIMITER: bindings.rateLimit({ namespace: "98432", simple: { limit: 10, period: 60 } }),
   },

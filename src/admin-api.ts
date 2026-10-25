@@ -1,5 +1,6 @@
 import { assertOrigin, body, contentType, disposition, filename, HttpError, json, MAX_SIZE, newId, PART_SIZE, validId, type Env } from "./core";
 import { requireAdmin } from "./auth";
+import { downloadStats } from "./analytics";
 import { archiveRelease, current, getRelease, manifestKey, publicRelease, setCurrent, type Release } from "./releases";
 
 interface Upload {
@@ -34,6 +35,7 @@ function pending(upload: Upload) {
 export async function adminApi(request: Request, env: Env, path: string) {
   await requireAdmin(request, env);
   if (request.method !== "GET") assertOrigin(request);
+  if (path === "/api/admin/stats" && request.method === "GET") return json(await downloadStats(env, new URL(request.url).searchParams.get("days") || "30"));
   if (path === "/api/admin/releases" && request.method === "GET") {
     const cursor = new URL(request.url).searchParams.get("cursor") || undefined;
     if (cursor && cursor.length > 4096) throw new HttpError(400, "Invalid cursor.");

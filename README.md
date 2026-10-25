@@ -16,6 +16,18 @@ Every upload gets a unique R2 key and permanent download URL, even with an ident
 
 Use **Make current** in history to roll back or activate an archived version. Previous files and manifests remain intact; there is no automatic deletion of old versions.
 
+## Download statistics
+
+Sign in at `/admin` to see download starts today, over the last 7 and 30 UTC calendar days, a daily chart, daily numbers, and a breakdown by immutable release. Select a 7, 30, or 90 day chart window and use **Refresh stats** to query again. Statistics begin when tracking is deployed; previous downloads cannot be reconstructed.
+
+The Worker records `download_start` only after R2 supplies a successful full GET or an explicit range beginning at byte zero. It excludes HEAD, revalidation, redirects, errors, nonzero ranges, and suffix ranges (including suffixes large enough to cover the entire file). Restarts from zero and automated requests can count again. These are starts observed by the Worker, not completed transfers or unique people; a file served entirely from a browser or upstream cache may not reach it.
+
+Events contain only the release ID, version label, event type, and a count. No IP addresses, user agents, cookies, or other visitor identifiers are recorded by this feature. A `tracking_enabled` event creates the dataset on the first request of a Worker instance, even before anyone downloads; it is excluded from statistics. Analytics failures never block archive delivery.
+
+The `DOWNLOAD_ANALYTICS` binding writes to `azerothsurvivors_downloads`. The `ANALYTICS_SQL` binding queries the account-scoped dataset without an API token. The protected `/api/admin/stats?days=30` endpoint accepts only 7, 30, or 90; it exposes aggregate results and never accepts SQL. The Analytics SQL API automatically applies sampling weights to `COUNT(*)`; do not manually multiply this API's counts by `_sample_interval`. The separate legacy Analytics Engine SQL API used for independent verification requires explicit sampling weights.
+
+Cloudflare retains Analytics Engine data for three months, ingestion can take minutes, and counts may be sampled estimates. This feature does not maintain a lifetime total. Failed queries show an error and a refresh control instead of zero counts. The staging Worker writes to a separate dataset, `azerothsurvivors_downloads_staging`.
+
 ## First-time admin setup
 
 The owner chooses the production password directly through a private one-time setup link. It is never sent to the agent or stored in Git.
@@ -54,7 +66,7 @@ npm run typecheck
 npm run deploy
 ~~~
 
-Cloudflare configuration declares the Worker, custom domain, private R2 bucket, setup secret, and rate limiter. Existing secrets are retained on ordinary deployments. The browser uploader is bundled locally by client-build.ts; no CDN scripts are used.
+Cloudflare configuration declares the Worker, custom domain, private R2 bucket, setup secret, rate limiter, Analytics Engine dataset, and Analytics SQL binding. Existing secrets are retained on ordinary deployments. The browser uploader is bundled locally by client-build.ts; no CDN scripts are used.
 
 The original mirror archive was retained at its existing R2 key and given an initial manifest. Both hashes were independently calculated from the local archive. All new uploads use releases/{release-id}/{filename} keys.
 
@@ -108,5 +120,9 @@ The API scenario uploads a 33 MiB archive with a long Unicode filename, resumes 
 The browser scenario forces a network failure after part one, reloads, resumes without resending that part, publishes, verifies every downloaded byte and both hashes, rolls back, and signs out. It uses an isolated headless Chrome instance; set CHROME_PATH if necessary.
 
 Evidence includes publishing-e2e.json, browser-e2e.json, and desktop/mobile screenshots in artifacts. Test-only credentials stay in ignored local files. Failure scenarios are recorded in docs/publishing-verification.md.
+
+For analytics verification, provision the dedicated staging bucket as above, generate setup files with label `analytics-staging`, deploy the staging Worker with `--secrets-file ../../.local/analytics-staging-secrets.json`, then run `npm run verify:analytics`. The scenario publishes two small archives, verifies their bytes, exercises excluded requests, waits up to four minutes for real Analytics Engine ingestion, compares the independent SQL API with the admin API, and exercises the charts, time windows, query error/empty states, mobile layout, and sign-out. Browser error/empty states use intercepted API responses; download counting and aggregate comparisons use the real deployed services. Evidence is saved to `artifacts/analytics-e2e.json`, `analytics-desktop.png`, and `analytics-mobile.png`. The test records its baseline and fresh release IDs so it can be repeated; run it without other staging download traffic. Failure cases are in `docs/analytics-verification.md`.
+
+`npm run verify:analytics:production` performs read-only live checks of the production page, release, HEAD/nonzero range delivery, admin protection, deployed stats assets, and the production Analytics SQL dataset. It adds no synthetic download starts and saves `artifacts/analytics-production.json`. The authenticated admin flow is verified on staging, where test credentials and archives are isolated.
 
 After testing, abort pending staging uploads, delete the staging Worker, empty **only** its dedicated test bucket, and delete that bucket. Historical evidence remains useful after this disposable environment is removed.

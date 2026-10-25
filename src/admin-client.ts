@@ -2,6 +2,7 @@ import { createMD5, createSHA256 } from "hash-wasm";
 
 interface Release { id: string; filename: string; bytes: number; version: string; published: string; downloadUrl: string }
 interface Pending { id: string; filename: string; bytes: number; version: string }
+interface Stats { days: number; generatedAt: string; totals: { today: number; last7Days: number; last30Days: number; selected: number }; daily: { date: string; downloads: number }[]; versions: { id: string; version: string; downloads: number }[] }
 const element = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => element<HTMLInputElement>(id);
 const button = (id: string) => element<HTMLButtonElement>(id);
@@ -64,6 +65,45 @@ async function historyList(append = false) {
   button("upload-button").disabled = busy;
 }
 function errorText(error: unknown) { return error instanceof Error ? error.message : "The request failed. Please try again."; }
+let statsGeneration = 0;
+async function loadStats() {
+  const generation = ++statsGeneration;
+  button("stats-refresh").disabled = true;
+  message("stats-message", "Loading download statistics…");
+  try {
+    const stats: Stats = await api(`/api/admin/stats?days=${element<HTMLSelectElement>("stats-days").value}`);
+    if (generation !== statsGeneration) return;
+    const count = (value: number) => Math.round(value).toLocaleString();
+    for (const [id, value] of [["today", stats.totals.today], ["seven", stats.totals.last7Days], ["thirty", stats.totals.last30Days]] as const) element(`stats-${id}`).textContent = count(value);
+    element("stats-period").textContent = `· last ${stats.days} days`;
+    const chart = element("stats-chart"); chart.replaceChildren(); chart.style.setProperty("--days", String(stats.days));
+    chart.setAttribute("aria-label", `${count(stats.totals.selected)} download starts over ${stats.days} UTC days. Daily numbers are listed below.`);
+    const maximum = Math.max(1, ...stats.daily.map(value => value.downloads));
+    const table = element("stats-daily-rows"); table.replaceChildren();
+    for (const value of stats.daily) {
+      const bar = document.createElement("div"); bar.className = "daily-bar"; bar.style.height = `${value.downloads / maximum * 100}%`; bar.title = `${value.date} (UTC): ${count(value.downloads)} starts`; chart.append(bar);
+      const row = document.createElement("tr"); const date = document.createElement("td"); const amount = document.createElement("td"); date.textContent = value.date; amount.textContent = count(value.downloads); row.append(date, amount); table.append(row);
+    }
+    element("stats-first-date").textContent = stats.daily[0]?.date || "";
+    element("stats-last-date").textContent = `${stats.daily.at(-1)?.date || ""} (UTC)`;
+    const versions = element("stats-versions"); versions.replaceChildren();
+    for (const release of stats.versions) {
+      const row = document.createElement("div"); row.className = "stats-version";
+      const info = document.createElement("div"); const name = document.createElement("strong"); name.textContent = release.version;
+      const id = document.createElement("small"); id.textContent = release.id; info.append(name, id);
+      const amount = document.createElement("span"); amount.textContent = count(release.downloads); row.append(info, amount); versions.append(row);
+    }
+    element("stats-empty").hidden = stats.totals.selected !== 0;
+    element("stats-updated").textContent = `Queried ${new Date(stats.generatedAt).toLocaleString()}. Refresh to check for new data.`;
+    element("stats-content").hidden = false;
+    message("stats-message", "");
+  } catch (error) {
+    if (generation !== statsGeneration) return;
+    element("stats-content").hidden = true;
+    message("stats-message", errorText(error), "error");
+    if (error instanceof ApiError && error.status === 401) show("login");
+  } finally { if (generation === statsGeneration) button("stats-refresh").disabled = false; }
+}
 for (const mode of ["login", "setup"]) element<HTMLFormElement>(`${mode}-form`).addEventListener("submit", async event => {
   event.preventDefault();
   const submit = (event.currentTarget as HTMLFormElement).querySelector("button")!; submit.disabled = true;
@@ -80,6 +120,8 @@ for (const mode of ["login", "setup"]) element<HTMLFormElement>(`${mode}-form`).
 });
 button("logout").addEventListener("click", async () => { await api("/api/admin/logout", "POST"); location.replace("/admin"); });
 button("refresh").addEventListener("click", () => historyList().catch(error => message("history-message", errorText(error), "error")));
+button("stats-refresh").addEventListener("click", () => { void loadStats(); });
+element("stats-days").addEventListener("change", () => { void loadStats(); });
 button("more").addEventListener("click", () => historyList(true).catch(error => message("history-message", errorText(error), "error")));
 input("archive").addEventListener("change", () => {
   const file = input("archive").files?.[0];
@@ -155,4 +197,4 @@ element<HTMLFormElement>("upload-form").addEventListener("submit", async event =
 });
 const mode = document.body.dataset.mode || "login";
 show(mode);
-if (mode === "dashboard") { uploadState(); historyList().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("history-message", errorText(error), "error"); }); }
+if (mode === "dashboard") { void loadStats(); uploadState(); historyList().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("history-message", errorText(error), "error"); }); }

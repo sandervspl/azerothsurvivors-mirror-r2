@@ -1,5 +1,8 @@
 export interface Env {
   DOWNLOADS: R2Bucket;
+  DOWNLOAD_ANALYTICS: AnalyticsEngineDataset;
+  ANALYTICS_SQL: AnalyticsSQLBinding;
+  ANALYTICS_DATASET: string;
   ADMIN_SETUP_HASH: string;
   LOGIN_LIMITER: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
