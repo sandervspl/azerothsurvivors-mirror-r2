@@ -1,0 +1,55 @@
+{
+  "base": "https://azerothsurvivors-release-staging.sandervispoel.workers.dev",
+  "startedAt": "2026-10-25T15:05:47.650Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "Token management requires a password session, same origin, valid names and expiry",
+      "passed": true
+    },
+    {
+      "name": "Browser creates a named token, reveals it once, and stores only its digest",
+      "passed": true
+    },
+    {
+      "name": "Concurrent creation keeps both tokens and token credentials cannot access other admin capabilities",
+      "passed": true
+    },
+    {
+      "name": "Tokens are restricted to their own jobs and incomplete/corrupt multipart uploads cannot publish",
+      "passed": true
+    },
+    {
+      "name": "Actual upload CLI resumes multipart state with only MIRROR_API_TOKEN and publishes independently verified bytes",
+      "passed": true
+    },
+    {
+      "name": "UI navigation stays separate, layouts fit mobile, and revocation immediately blocks further upload requests",
+      "passed": true
+    },
+    {
+      "name": "Concurrent revocation/creation preserves unrelated tokens; expired credentials are rejected",
+      "passed": true
+    },
+    {
+      "name": "Sign-out and admin-key reset invalidate credentials while a new generation works",
+      "passed": true
+    }
+  ],
+  "fixtures": [
+    "token-multipart-1792940756295.zip"
+  ],
+  "release": {
+    "id": "1792940754815-dd67b06d-dac9-4f5e-b658-ab7caa94e861",
+    "bytes": 34603145,
+    "sha256": "6addd350a4d22841caf9ff007a23fa0029d53b10e89000b7499f69152c64a6d6",
+    "md5": "e75404d767bd7ab002ab814d7b3da67e"
+  },
+  "tokenIds": [
+    "e27eaf949b804b63aa8124ab62c4e2a7",
+    "a123d88fb9984ff399db8a52fd20ed0f",
+    "e599d423e50c416fb1926c2de909ed13",
+    "dbcaa35583ce4c73930f64369530d9d1"
+  ],
+  "finishedAt": "2026-10-25T15:06:40.177Z"
+}

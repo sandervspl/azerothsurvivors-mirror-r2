@@ -4,7 +4,7 @@ interface AuthRecord { salt: string; verifier: string; signingKey: string }
 const AUTH_KEY = "admin/auth.json";
 const COOKIE = "__Host-mirror_session";
 const SESSION_SECONDS = 12 * 60 * 60;
-const equal = (a: string, b: string) => {
+export const equal = (a: string, b: string) => {
   let difference = a.length ^ b.length;
   for (let index = 0; index < a.length; index++) difference |= a.charCodeAt(index) ^ (b.charCodeAt(index) || 0);
   return difference === 0;
@@ -16,6 +16,10 @@ async function passwordHash(password: string, salt: string) {
 async function authRecord(env: Env) {
   const object = await env.DOWNLOADS.get(AUTH_KEY);
   return object?.json<AuthRecord>();
+}
+export async function authGeneration(env: Env) {
+  const record = await authRecord(env);
+  return record ? digest(record.signingKey) : null;
 }
 async function signingKey(record: AuthRecord) {
   return crypto.subtle.importKey("raw", new TextEncoder().encode(record.signingKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);

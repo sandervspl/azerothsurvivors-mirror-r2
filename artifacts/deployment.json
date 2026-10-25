@@ -3,7 +3,7 @@
   "workersUrl": "https://azerothsurvivors.sandervispoel.workers.dev",
   "repository": "https://github.com/sandervspl/azerothsurvivors-mirror-r2",
   "worker": "azerothsurvivors",
-  "versionId": "93ccda19-8254-4fdf-8abf-d15abea2503b",
+  "versionId": "87c74a15-85bf-42e2-bf94-52bbe7e87c2f",
   "adminUrl": "https://azerothsurvivors-mirror.sandervspl.dev/admin",
   "releaseId": "1792925574766-14929617-e3ce-4190-8591-6e5e1a4a1c59",
   "releaseVersion": "0.115.0",
@@ -28,5 +28,17 @@
     "retention": "Three months",
     "metric": "Download starts",
     "adminUrl": "https://azerothsurvivors-mirror.sandervspl.dev/admin/stats"
+  },
+  "apiTokens": {
+    "adminUrl": "https://azerothsurvivors-mirror.sandervspl.dev/admin/tokens",
+    "authentication": "Authorization: Bearer <token>",
+    "scope": "Read published release history and manage uploads owned by the token",
+    "expiryDays": [
+      30,
+      90,
+      365
+    ],
+    "defaultExpiryDays": 90,
+    "storage": "SHA-256 digests only"
   }
 }

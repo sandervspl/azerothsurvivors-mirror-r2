@@ -12,6 +12,7 @@
     "verify:publishing": "node scripts/verify-publishing.mjs",
     "verify:browser": "node scripts/verify-browser.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",
+    "verify:tokens": "node scripts/verify-api-tokens.mjs",
     "verify:analytics": "node scripts/verify-analytics.mjs",
     "verify:analytics:production": "node scripts/verify-analytics-production.mjs",
     "verify:recovery": "node scripts/verify-recovery.mjs"

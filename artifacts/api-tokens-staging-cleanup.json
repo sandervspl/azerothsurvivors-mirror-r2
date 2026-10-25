@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-25T15:09:41.314Z",
+  "worker": "azerothsurvivors-release-staging",
+  "bucket": "azerothsurvivors-release-staging",
+  "deletedObjects": 11,
+  "workerDeleted": true,
+  "bucketDeleted": true,
+  "postDeletionStatus": 404,
+  "analyticsDataset": "azerothsurvivors_downloads_staging",
+  "analyticsDatasetRetention": "Test events expire under the normal three-month Analytics Engine retention policy",
+  "productionTokensCreated": false
+}

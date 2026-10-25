@@ -4,7 +4,8 @@ interface Release { id: string; filename: string; bytes: number; version: string
 interface Pending { id: string; filename: string; bytes: number; version: string }
 interface Stats { days: number; generatedAt: string; totals: { today: number; last7Days: number; last30Days: number; selected: number }; daily: { date: string; downloads: number }[]; versions: { id: string; version: string; downloads: number }[] }
 const statsPage = document.body.dataset.page === "stats";
-const adminPath = statsPage ? "/admin/stats" : "/admin";
+const tokensPage = document.body.dataset.page === "tokens";
+const adminPath = statsPage ? "/admin/stats" : tokensPage ? "/admin/tokens" : "/admin";
 const element = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => element<HTMLInputElement>(id);
 const button = (id: string) => element<HTMLButtonElement>(id);
@@ -124,7 +125,7 @@ button("logout").addEventListener("click", async () => { await api("/api/admin/l
 if (statsPage) {
   button("stats-refresh").addEventListener("click", () => { void loadStats(); });
   element("stats-days").addEventListener("change", () => { void loadStats(); });
-} else {
+} else if (!tokensPage) {
 button("refresh").addEventListener("click", () => historyList().catch(error => message("history-message", errorText(error), "error")));
 button("more").addEventListener("click", () => historyList(true).catch(error => message("history-message", errorText(error), "error")));
 input("archive").addEventListener("change", () => {
@@ -200,9 +201,54 @@ element<HTMLFormElement>("upload-form").addEventListener("submit", async event =
   }
 });
 }
+interface UploadToken { id: string; name: string; createdAt: string; expiresAt: string }
+async function loadTokens() {
+  const result = await api("/api/admin/tokens");
+  const list = element("token-list"); list.replaceChildren();
+  for (const token of result.tokens as UploadToken[]) {
+    const row = document.createElement("article"); row.className = "release"; row.dataset.tokenId = token.id;
+    const info = document.createElement("div"); info.className = "release-info";
+    const name = document.createElement("strong"); name.textContent = token.name;
+    const dates = document.createElement("small"); dates.textContent = `Created ${new Date(token.createdAt).toLocaleDateString()} · Expires ${new Date(token.expiresAt).toLocaleDateString()} · ID ${token.id.slice(0, 8)}`;
+    if (Date.parse(token.expiresAt) <= Date.now()) { const expired = document.createElement("small"); expired.className = "token-expired"; expired.textContent = "Expired"; info.append(expired); }
+    info.prepend(name, dates); row.append(info);
+    const revoke = document.createElement("button"); revoke.type = "button"; revoke.className = "secondary"; revoke.textContent = "Revoke";
+    revoke.addEventListener("click", async () => {
+      revoke.disabled = true;
+      try {
+        await api(`/api/admin/tokens/${token.id}`, "DELETE");
+        if (input("created-token").value.startsWith(`as_mirror_${token.id}_`)) clearToken();
+        await loadTokens(); message("tokens-message", `Revoked ${token.name}.`, "success");
+      } catch (error) { message("tokens-message", errorText(error), "error"); revoke.disabled = false; }
+    });
+    row.append(revoke); list.append(row);
+  }
+  if (!list.childElementCount) { const empty = document.createElement("p"); empty.className = "empty"; empty.textContent = "No API tokens. Create one above to automate uploads."; list.append(empty); }
+}
+function clearToken() { input("created-token").value = ""; element("token-secret").hidden = true; button("create-token").disabled = false; }
+if (tokensPage) {
+  window.addEventListener("pagehide", clearToken);
+  element<HTMLFormElement>("token-form").addEventListener("submit", async event => {
+    event.preventDefault(); if (!element("token-secret").hidden) return;
+    button("create-token").disabled = true; message("token-message", "");
+    try {
+      const created = await api("/api/admin/tokens", "POST", { name: input("token-name").value, expiresInDays: Number(element<HTMLSelectElement>("token-expiry").value) });
+      input("created-token").value = created.token; element("token-secret").hidden = false; input("token-name").value = "";
+      message("token-message", "Token created. Copy it now; it cannot be shown again.", "success");
+      await loadTokens().catch(error => message("tokens-message", errorText(error), "error"));
+    } catch (error) { message("token-message", errorText(error), "error"); button("create-token").disabled = false; }
+  });
+  button("dismiss-token").addEventListener("click", () => { clearToken(); message("token-message", ""); });
+  button("copy-token").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(input("created-token").value); message("token-message", "Token copied. Save it in your secret manager.", "success"); }
+    catch { input("created-token").focus(); input("created-token").select(); message("token-message", "Select and copy the token from the field above."); }
+  });
+  button("tokens-refresh").addEventListener("click", () => { void loadTokens().catch(error => message("tokens-message", errorText(error), "error")); });
+}
 const mode = document.body.dataset.mode || "login";
 show(mode);
 if (mode === "dashboard") {
   if (statsPage) void loadStats();
+  else if (tokensPage) void loadTokens().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("tokens-message", errorText(error), "error"); });
   else { uploadState(); historyList().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("history-message", errorText(error), "error"); }); }
 }

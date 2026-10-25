@@ -1,6 +1,7 @@
 import { assertOrigin, body, contentType, disposition, filename, HttpError, json, MAX_SIZE, newId, PART_SIZE, validId, type Env } from "./core";
 import { requireAdmin } from "./auth";
 import { downloadStats } from "./analytics";
+import { tokenApi, tokenPrincipal } from "./api-tokens";
 import { archiveRelease, current, getRelease, manifestKey, publicRelease, setCurrent, type Release } from "./releases";
 
 interface Upload {
@@ -13,6 +14,7 @@ interface Upload {
   createdAt: number;
   expectedEtag: string | null;
   status: "pending" | "completing" | "completed" | "aborted";
+  apiTokenId?: string;
 }
 const uploadKey = (id: string) => `uploads/${id}/state.json`;
 const partPrefix = (id: string) => `uploads/${id}/parts/`;
@@ -33,8 +35,17 @@ function pending(upload: Upload) {
 }
 
 export async function adminApi(request: Request, env: Env, path: string) {
-  await requireAdmin(request, env);
-  if (request.method !== "GET") assertOrigin(request);
+  if (path === "/api/admin/tokens" || path.startsWith("/api/admin/tokens/")) return tokenApi(request, env, path);
+  const token = request.headers.has("Authorization") ? await tokenPrincipal(request, env) : null;
+  if (token) {
+    const allowed = path === "/api/admin/releases" && request.method === "GET"
+      || path === "/api/admin/uploads" && request.method === "POST"
+      || /^\/api\/admin\/uploads\/[^/]+(?:\/(?:parts\/\d+|complete|abort))?$/.test(path);
+    if (!allowed) throw new HttpError(403, "This API token only permits uploads and release history.");
+  } else {
+    await requireAdmin(request, env);
+    if (request.method !== "GET") assertOrigin(request);
+  }
   if (path === "/api/admin/stats" && request.method === "GET") return json(await downloadStats(env, new URL(request.url).searchParams.get("days") || "30"));
   if (path === "/api/admin/releases" && request.method === "GET") {
     const cursor = new URL(request.url).searchParams.get("cursor") || undefined;
@@ -65,7 +76,7 @@ export async function adminApi(request: Request, env: Env, path: string) {
     const id = newId();
     const key = `releases/${id}/${name}`;
     const multipart = await env.DOWNLOADS.createMultipartUpload(key, { httpMetadata: { contentType: contentType(name), contentDisposition: disposition(name) } });
-    const upload: Upload = { id, uploadId: multipart.uploadId, key, filename: name, bytes: data.bytes, version: data.version?.trim() || new Date().toISOString(), createdAt: Date.now(), expectedEtag: before?.etag || null, status: "pending" };
+    const upload: Upload = { id, uploadId: multipart.uploadId, key, filename: name, bytes: data.bytes, version: data.version?.trim() || new Date().toISOString(), createdAt: Date.now(), expectedEtag: before?.etag || null, status: "pending", ...(token ? { apiTokenId: token.id } : {}) };
     try { await env.DOWNLOADS.put(uploadKey(id), JSON.stringify(upload)); }
     catch (error) { await multipart.abort(); throw error; }
     return json({ id, partSize: PART_SIZE }, 201);
@@ -73,6 +84,7 @@ export async function adminApi(request: Request, env: Env, path: string) {
   const match = /^\/api\/admin\/uploads\/([^/]+)(?:\/(parts\/\d+|complete|abort))?$/.exec(path);
   if (!match) throw new HttpError(404, "Endpoint not found.");
   const { upload, etag: stateEtag } = await readUpload(env, match[1]);
+  if (token && upload.apiTokenId !== token.id) throw new HttpError(403, "This upload belongs to another credential. Use its original API token or the admin session.");
   const action = match[2];
   if (!action && request.method === "GET") {
     return json({ id: upload.id, filename: upload.filename, bytes: upload.bytes, status: upload.status, expired: upload.status === "pending" && Date.now() - upload.createdAt > 24 * 60 * 60 * 1000, version: upload.version, partSize: PART_SIZE, parts: await receipts(env, upload.id) });

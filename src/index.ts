@@ -35,17 +35,17 @@ export default {
       }
       if (request.method !== "GET" && !head) return response("Method not allowed", 405, { Allow: "GET, HEAD", "Cache-Control": "no-store" });
       if (path === "/admin/app.js") return response(head ? null : adminScript, 200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
-      if (["/admin", "/admin/", "/admin/setup", "/admin/stats", "/admin/stats/"].includes(path)) {
-        const statsPage = path === "/admin/stats" || path === "/admin/stats/";
+      if (["/admin", "/admin/", "/admin/setup", "/admin/stats", "/admin/stats/", "/admin/tokens", "/admin/tokens/"].includes(path)) {
+        const section = path.startsWith("/admin/stats") ? "stats" : path.startsWith("/admin/tokens") ? "tokens" : "releases";
         const mode = await authenticated(request, env) ? "dashboard" : path === "/admin/setup" ? "setup" : "login";
         const html = adminPage
-          .replace(/<!--stats:start-->([\s\S]*?)<!--stats:end-->/, (_, section: string) => statsPage ? section : "")
-          .replace(/<!--releases:start-->([\s\S]*?)<!--releases:end-->/, (_, section: string) => statsPage ? "" : section)
-          .replace("__MODE__", mode).replace("__PAGE__", statsPage ? "stats" : "releases")
-          .replace("__ADMIN_TITLE__", statsPage ? "Download statistics — Mirror administration" : "Manage mirror uploads")
-          .replace("__ADMIN_HEADING__", statsPage ? "Download statistics." : "Manage releases.")
-          .replace("__RELEASES_CURRENT__", statsPage ? "false" : "page")
-          .replace("__STATS_CURRENT__", statsPage ? "page" : "false");
+          .replace(/<!--(stats|releases|tokens):start-->([\s\S]*?)<!--\1:end-->/g, (_, name: string, content: string) => name === section ? content : "")
+          .replace("__MODE__", mode).replace("__PAGE__", section)
+          .replace("__ADMIN_TITLE__", section === "stats" ? "Download statistics — Mirror administration" : section === "tokens" ? "API tokens — Mirror administration" : "Manage mirror uploads")
+          .replace("__ADMIN_HEADING__", section === "stats" ? "Download statistics." : section === "tokens" ? "API tokens." : "Manage releases.")
+          .replace("__RELEASES_CURRENT__", section === "releases" ? "page" : "false")
+          .replace("__STATS_CURRENT__", section === "stats" ? "page" : "false")
+          .replace("__TOKENS_CURRENT__", section === "tokens" ? "page" : "false");
         return response(head ? null : html, 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
       }
       if (path === "/" || path === "/api/release" || path === "/download" || path === "/checksums.txt") {

@@ -4,9 +4,9 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { apiClient, ApiError } from './api-client.mjs';
 
-export async function publishArchive({ base, path, version = '', password, resumePath, progress = console.log }) {
-  const client = apiClient(base);
-  await client.login(password);
+export async function publishArchive({ base, path, version = '', password, token, resumePath, progress = console.log }) {
+  const client = apiClient(base, { token });
+  if (!token) await client.login(password);
   const actualPath = path instanceof URL ? fileURLToPath(path) : resolve(path);
   const file = await open(actualPath);
   const size = (await file.stat()).size;
@@ -81,8 +81,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     const [path, version = '', base = 'https://azerothsurvivors-mirror.sandervspl.dev'] = process.argv.slice(2);
     if (!path) throw new Error('Usage: npm run upload -- <archive-path> [version-label] [mirror-url]');
     await mkdir(new URL('../.local/', import.meta.url), { recursive: true });
-    const resumePath = new URL('../.local/cli-upload.json', import.meta.url);
-    const release = await publishArchive({ base, path, version, password: await hiddenPassword(), resumePath });
+    const resumePath = process.env.MIRROR_UPLOAD_STATE ? resolve(process.env.MIRROR_UPLOAD_STATE) : new URL('../.local/cli-upload.json', import.meta.url);
+    const token = process.env.MIRROR_API_TOKEN;
+    const release = await publishArchive({ base, path, version, ...(token ? { token } : { password: await hiddenPassword() }), resumePath });
     await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
     await writeFile(new URL('../artifacts/upload.json', import.meta.url), JSON.stringify({ ...release, verifiedAt: new Date().toISOString() }, null, 2) + '\n');
     console.log('Published ' + release.filename + '\nSHA-256: ' + release.sha256 + '\nMD5: ' + release.md5 + '\n' + new URL(release.downloadUrl, base));

@@ -32,7 +32,7 @@ Cloudflare retains Analytics Engine data for three months, ingestion can take mi
 
 The owner chooses the production password directly through a private one-time setup link. It is never sent to the agent or stored in Git.
 
-The setup hash is a Cloudflare Worker secret. A salted PBKDF2-SHA-256 verifier and a random session signing key are stored in the private R2 bucket. Sessions expire after 12 hours and use Secure, HttpOnly, SameSite=Strict cookies. Mutations require the same Origin; setup and sign-in attempts are rate limited. The setup link stops working once a password is configured.
+The setup hash is a Cloudflare Worker secret. A salted PBKDF2-SHA-256 verifier and a random session signing key are stored in the private R2 bucket. Sessions expire after 12 hours and use Secure, HttpOnly, SameSite=Strict cookies. Password-session mutations require the same Origin; setup and sign-in attempts are rate limited. The setup link stops working once a password is configured.
 
 For a new environment:
 
@@ -45,7 +45,38 @@ Open the private URL saved in **.local/admin-setup-url.txt** and set the passwor
 
 Do not rerun setup for a configured admin. To reset a lost password, first generate and deploy a fresh setup hash using a new local label. Then use the authenticated Cloudflare CLI to delete **only admin/auth.json** from the private bucket, and immediately open the new setup link. This invalidates all sessions without affecting releases.
 
-## Command-line publishing
+## API tokens and automated publishing
+
+Sign in at `/admin/tokens` or choose **API tokens** in the admin navigation. Create a named token with an expiry of 30 days, 90 days (default), or one year. Copy the value immediately into your secret manager; it is shown only once. Up to 20 active tokens are supported. Revoke unused tokens from the same page. The password is still required to create, list, or revoke tokens.
+
+Upload tokens can read release history and create, resume, publish, or discard their own upload jobs. They cannot manage tokens, query statistics, activate existing releases, or access another credential's upload. The admin password session can manage every job. Revocation or expiry blocks subsequent requests, including unfinished uploads. Use the same token to resume; if it is revoked or expired, an admin can discard the old job and the automation should start a new upload with a new token.
+
+Send tokens only in the `Authorization: Bearer <token>` header over HTTPS. Do not put them in URLs, source files, shell arguments, or upload state. Scripts do not need an Origin header; an explicit foreign Origin is rejected. Browser/password-session mutations still require the site's exact Origin. Tokens do not grant access to the admin HTML pages, which continue to require the password session.
+
+Only a SHA-256 digest of each randomly generated token is stored in `admin/api-tokens.json`, alongside its ID, name, creation/expiry timestamps, and admin-key generation. Token list responses omit the digest and secret. Changes to the registry use conditional R2 writes. Resetting the admin authentication record/signing key invalidates previously issued tokens; create new tokens after a reset.
+
+For automation, supply `MIRROR_API_TOKEN` through your CI/secret manager, then run the existing uploader:
+
+~~~powershell
+npm run upload -- 'C:\path\to\new-archive.rar' '0.116.0'
+~~~
+
+The CLI uses the token without a password prompt or login request. If both token and password environment variables are present, the token takes precedence. It calculates hashes and resumes exactly like the password-based uploader. Set `MIRROR_UPLOAD_STATE` to a path in an existing directory to choose a separate resume-state file; it contains job/file metadata, never credentials. Otherwise the default is `.local/cli-upload.json`.
+
+For another client, these endpoints accept the Bearer header. JSON requests use `Content-Type: application/json`; errors return an `error` string and an HTTP status.
+
+| Request | Body / behavior |
+| --- | --- |
+| `GET /api/admin/releases` | Read `current` and published release history; paginate with the returned `cursor` |
+| `POST /api/admin/uploads` | `{ "filename": "archive.rar", "bytes": 123, "version": "0.116.0", "expectedCurrentId": null }`; returns `id` and `partSize` (32 MiB). Replace `null` with the `current` ID from release history when a release exists. |
+| `GET /api/admin/uploads/{id}` | Resume metadata and verified part receipts for a job owned by this token |
+| `PUT /api/admin/uploads/{id}/parts/{number}` | Raw bytes, `Content-Type: application/octet-stream`, exact `Content-Length`, and lowercase hex `X-Part-MD5`; parts start at 1, with only the last part shorter than `partSize` |
+| `POST /api/admin/uploads/{id}/complete` | `{ "sha256": "full-file-lowercase-hex", "md5": "full-file-lowercase-hex" }`; verify all receipts before completing. Successful publication returns the release. |
+| `POST /api/admin/uploads/{id}/abort` | Discard an unfinished job owned by this token; completed releases are preserved |
+
+Both starting and publishing protect against concurrent changes to the current release. A completion conflict returns HTTP 409 with the complete archived `release`; it cannot be activated with an upload token. An admin can review and activate it in release history.
+
+## Password-based command-line publishing
 
 ~~~powershell
 npm run upload -- 'C:\path\to\new-archive.rar' 'Version label'
@@ -80,6 +111,7 @@ The original mirror archive was retained at its existing R2 key and given an ini
 | releases/{id}/{filename} | Immutable new archive objects |
 | uploads/{id}/... | Upload state and verified part receipts |
 | admin/auth.json | Private password verifier and session signing key |
+| admin/api-tokens.json | API token digests, names, expiry, and admin-key generation; no plaintext token values |
 
 | Route | Purpose |
 | --- | --- |
@@ -124,5 +156,7 @@ Evidence includes publishing-e2e.json, browser-e2e.json, and desktop/mobile scre
 For analytics verification, provision the dedicated staging bucket as above, generate setup files with label `analytics-staging`, deploy the staging Worker with `--secrets-file ../../.local/analytics-staging-secrets.json`, then run `npm run verify:analytics`. The scenario publishes two small archives, verifies their bytes, exercises excluded requests, waits up to four minutes for real Analytics Engine ingestion, compares the independent SQL API with the admin API, and exercises the charts, time windows, query error/empty states, mobile layout, and sign-out. Browser error/empty states use intercepted API responses; download counting and aggregate comparisons use the real deployed services. Evidence is saved to `artifacts/analytics-e2e.json`, `analytics-desktop.png`, and `analytics-mobile.png`. The test records its baseline and fresh release IDs so it can be repeated; run it without other staging download traffic. Failure cases are in `docs/analytics-verification.md`.
 
 `npm run verify:analytics:production` performs read-only live checks of the production page, release, HEAD/nonzero range delivery, admin protection, deployed stats assets, and the production Analytics SQL dataset. It adds no synthetic download starts and saves `artifacts/analytics-production.json`. The authenticated admin flow is verified on staging, where test credentials and archives are isolated.
+
+For token verification, provision the dedicated staging bucket, run `node scripts/setup-admin.mjs https://azerothsurvivors-release-staging.sandervispoel.workers.dev token-staging`, deploy from `tools/staging` with `--secrets-file ../../.local/token-staging-secrets.json`, then run `npm run verify:tokens`. The E2E scenario covers direct browser login/token creation, one-time secret display and hashed storage, concurrent registry writes, restricted capabilities/ownership, corrupt/incomplete multipart rejection, and a 33 MiB CLI resume using only `MIRROR_API_TOKEN`. It independently verifies all downloaded bytes and both hashes, exercises UI revocation, simulates expiry and admin-key rotation in staging storage, and checks mobile layout and sign-out. No production token is created. Evidence is saved to `artifacts/api-tokens-e2e.json` and screenshots taken after clearing the secret. Failure cases are in `docs/api-token-verification.md`; no credential-bearing traces or secrets are saved in evidence.
 
 After testing, abort pending staging uploads, delete the staging Worker, empty **only** its dedicated test bucket, and delete that bucket. Historical evidence remains useful after this disposable environment is removed.

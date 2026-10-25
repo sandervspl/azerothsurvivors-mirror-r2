@@ -1,10 +1,11 @@
 {
   "base": "https://azerothsurvivors-mirror.sandervspl.dev",
-  "checkedAt": "2026-10-25T14:09:16.638Z",
+  "checkedAt": "2026-10-25T15:08:50.413Z",
   "passed": true,
   "checks": [
     "Public page, release metadata, archive HEAD and nonzero range remain available without recording a download start",
     "Stats API requires authentication, releases and stats use separate uncached pages, direct stats visits require login, and production assets contain the stats client",
+    "Dedicated token pages require login and contain no tokens; unauthenticated token creation and invalid bearer upload are denied without mutating production",
     "Production Analytics SQL API can query the dedicated dataset; no synthetic download starts were generated"
   ],
   "release": {
@@ -20,19 +21,19 @@
   "analytics": {
     "data": [
       {
-        "count": 441,
+        "count": 725,
         "event": "download_start"
       },
       {
-        "count": 586,
+        "count": 936,
         "event": "tracking_enabled"
       }
     ],
     "rows": 2,
     "statistics": {
       "elapsed_ms": 20,
-      "rows_read": 4843355,
-      "bytes_read": 83411038
+      "rows_read": 5039963,
+      "bytes_read": 94746042
     }
   }
 }
