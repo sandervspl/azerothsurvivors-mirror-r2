@@ -1,29 +1,19 @@
 {
-  "verifiedAt": "2026-10-25T10:08:38.739Z",
-  "method": "T3 html_preview of the minimal mirror page. No horizontal overflow at 320 and 900 px, one native download link, both correct checksums selectable. Dark palette additionally inspected with media rules forced.",
+  "verifiedAt": "2026-10-25T10:11:27.919Z",
+  "method": "T3 html_preview of the violet and white mirror redesign at desktop and phone widths. Native download link and both selectable checksums verified; no horizontal overflow.",
   "checks": [
     {
-      "width": 320,
-      "appearance": "dark",
-      "status": "fulfilled",
-      "result": [
-        "{\"width\":320,\"contentHeight\":480,\"capturedHeight\":480,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":320,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":480}}"
-      ]
-    },
-    {
       "width": 900,
-      "appearance": "light",
       "status": "fulfilled",
       "result": [
-        "{\"width\":900,\"contentHeight\":436,\"capturedHeight\":436,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":900,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":900,\"height\":436}}"
+        "{\"width\":900,\"contentHeight\":486,\"capturedHeight\":486,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":900,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":900,\"height\":486}}"
       ]
     },
     {
       "width": 320,
-      "palette": "dark",
-      "method": "Applied the dark media-query rules unconditionally for headless visual inspection.",
+      "status": "fulfilled",
       "result": [
-        "{\"width\":320,\"contentHeight\":480,\"capturedHeight\":480,\"consoleMessages\":[],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":480}}"
+        "{\"width\":320,\"contentHeight\":523,\"capturedHeight\":523,\"consoleMessages\":[{\"level\":\"log\",\"text\":\"{\\\"width\\\":320,\\\"horizontalOverflow\\\":false,\\\"downloadLinks\\\":1,\\\"checksums\\\":[\\\"971db7968dc37ec50b18d64a1de7f693e137f6793a7368e4d5c27bd9522eccd8\\\",\\\"7748bfdffaccd2f46d868cf69ad3e72c\\\"],\\\"selectableChecksums\\\":true}\"}],\"screenshot\":{\"mimeType\":\"image/png\",\"width\":320,\"height\":523}}"
       ]
     }
   ]

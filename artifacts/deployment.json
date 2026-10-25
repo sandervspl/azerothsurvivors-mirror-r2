@@ -2,7 +2,7 @@
   "site": "https://azerothsurvivors.sandervispoel.workers.dev",
   "repository": "https://github.com/sandervspl/azerothsurvivors-mirror-r2",
   "worker": "azerothsurvivors",
-  "versionId": "4c38c065-86e3-4579-bd8c-d0cb3a713f45",
+  "versionId": "dc5faf5f-335c-440b-90e8-f1557b87fa94",
   "bucket": "azerothsurvivors-downloads",
   "bucketAccess": "Private; public downloads stream through the Worker",
   "download": "https://azerothsurvivors.sandervispoel.workers.dev/download",
