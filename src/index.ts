@@ -35,9 +35,18 @@ export default {
       }
       if (request.method !== "GET" && !head) return response("Method not allowed", 405, { Allow: "GET, HEAD", "Cache-Control": "no-store" });
       if (path === "/admin/app.js") return response(head ? null : adminScript, 200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
-      if (path === "/admin" || path === "/admin/" || path === "/admin/setup") {
+      if (["/admin", "/admin/", "/admin/setup", "/admin/stats", "/admin/stats/"].includes(path)) {
+        const statsPage = path === "/admin/stats" || path === "/admin/stats/";
         const mode = await authenticated(request, env) ? "dashboard" : path === "/admin/setup" ? "setup" : "login";
-        return response(head ? null : adminPage.replace("__MODE__", mode), 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
+        const html = adminPage
+          .replace(/<!--stats:start-->([\s\S]*?)<!--stats:end-->/, (_, section: string) => statsPage ? section : "")
+          .replace(/<!--releases:start-->([\s\S]*?)<!--releases:end-->/, (_, section: string) => statsPage ? "" : section)
+          .replace("__MODE__", mode).replace("__PAGE__", statsPage ? "stats" : "releases")
+          .replace("__ADMIN_TITLE__", statsPage ? "Download statistics — Mirror administration" : "Manage mirror uploads")
+          .replace("__ADMIN_HEADING__", statsPage ? "Download statistics." : "Manage releases.")
+          .replace("__RELEASES_CURRENT__", statsPage ? "false" : "page")
+          .replace("__STATS_CURRENT__", statsPage ? "page" : "false");
+        return response(head ? null : html, 200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
       }
       if (path === "/" || path === "/api/release" || path === "/download" || path === "/checksums.txt") {
         const pinned = url.searchParams.get("release");

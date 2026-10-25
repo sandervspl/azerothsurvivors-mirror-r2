@@ -64,7 +64,7 @@ try {
   await expect(page.locator('#history-message')).toContainText('now serves the selected version');
   assert.equal((await fetch(base + '/api/release').then(r => r.json())).id, previous.id);
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Sign in to upload.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sign in to manage the mirror.' })).toBeVisible();
   checks.push({ name: 'Release activation rolls back the mirror and sign-out returns to the login screen', passed: true });
   report.passed = true;
 } catch (error) {

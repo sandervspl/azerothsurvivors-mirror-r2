@@ -18,9 +18,13 @@ try {
   report.release = release; report.checks.push('Public page, release metadata, archive HEAD and nonzero range remain available without recording a download start');
   const session = await fetch(base + '/api/admin/session').then(result => result.json()); assert.equal(session.configured, true); assert.equal(session.authenticated, false);
   assert.equal((await fetch(base + '/api/admin/stats')).status, 401);
-  const admin = await fetch(base + '/admin').then(result => result.text()); assert.ok(admin.includes('id="stats-title"')); assert.ok(admin.includes('id="stats-days"'));
+  const admin = await fetch(base + '/admin').then(result => result.text()); assert.ok(admin.includes('id="upload-form"')); assert.ok(!admin.includes('id="stats-title"')); assert.ok(admin.includes('href="/admin/stats"'));
+  for (const path of ['/admin/stats', '/admin/stats/']) {
+    const response = await fetch(base + path); assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+    const stats = await response.text(); assert.ok(stats.includes('id="stats-title"')); assert.ok(stats.includes('id="stats-days"')); assert.ok(!stats.includes('id="upload-form"')); assert.ok(stats.includes('data-mode="login"'));
+  }
   const app = await fetch(base + '/admin/app.js'); assert.equal(app.status, 200); assert.ok((await app.text()).includes('/api/admin/stats'));
-  report.checks.push('Admin setup remains configured, stats API requires authentication, and production HTML/client include the stats controls');
+  report.checks.push('Stats API requires authentication, releases and stats use separate uncached pages, direct stats visits require login, and production assets contain the stats client');
   const query = `SELECT blob1 AS event, COUNT(*) AS count FROM events.analyticsEngine.azerothsurvivors_downloads WHERE accountTag = 'ca0578fc475d4ccbf2e176a18e6674e5' AND timestamp >= NOW() - INTERVAL '1' DAY GROUP BY event`;
   const queryFile = new URL('.local/analytics-production-query.sql', root); await writeFile(queryFile, query);
   let engine;

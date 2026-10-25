@@ -18,7 +18,7 @@ Use **Make current** in history to roll back or activate an archived version. Pr
 
 ## Download statistics
 
-Sign in at `/admin` to see download starts today, over the last 7 and 30 UTC calendar days, a daily chart, daily numbers, and a breakdown by immutable release. Select a 7, 30, or 90 day chart window and use **Refresh stats** to query again. Statistics begin when tracking is deployed; previous downloads cannot be reconstructed.
+Sign in at `/admin/stats` (or choose **Statistics** in the admin navigation) to see download starts today, over the last 7 and 30 UTC calendar days, a daily chart, daily numbers, and a breakdown by immutable release. Uploads and release history stay at `/admin`, which does not query Analytics Engine. Signing in directly on the statistics page returns there. Select a 7, 30, or 90 day chart window and use **Refresh stats** to query again. Statistics begin when tracking is deployed; previous downloads cannot be reconstructed.
 
 The Worker records `download_start` only after R2 supplies a successful full GET or an explicit range beginning at byte zero. It excludes HEAD, revalidation, redirects, errors, nonzero ranges, and suffix ranges (including suffixes large enough to cover the entire file). Restarts from zero and automated requests can count again. These are starts observed by the Worker, not completed transfers or unique people; a file served entirely from a browser or upstream cache may not reach it.
 

@@ -106,9 +106,31 @@ try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
   const context = await browser.newContext({ viewport: { width: 1100, height: 900 } });
   const page = await context.newPage();
-  await page.goto(base + '/admin');
+  let statsRequests = 0;
+  const pageErrors = [];
+  page.on('request', request => { if (new URL(request.url()).pathname === '/api/admin/stats') statsRequests++; });
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await page.goto(base + '/admin/stats');
+  assert.equal(statsRequests, 0);
   await page.locator('#login-password').fill(password); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.locator('#stats-content')).toBeVisible();
+  await expect(page).toHaveURL(base + '/admin/stats');
+  await check('Direct stats login preserves the page; navigation separates releases and stats without extra analytics queries', async () => {
+    await expect(page.getByRole('heading', { name: 'Download statistics.', exact: true })).toBeVisible();
+    await expect(page.locator('#upload-form')).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Statistics' })).toHaveAttribute('aria-current', 'page');
+    const queries = statsRequests;
+    await page.getByRole('navigation').getByRole('link', { name: 'Releases', exact: true }).click();
+    await expect(page).toHaveURL(base + '/admin');
+    await expect(page.locator('#upload-button')).toBeEnabled();
+    await expect(page.locator('.release').filter({ hasText: b.version })).toBeVisible();
+    await expect(page.locator('#stats-content')).toHaveCount(0);
+    assert.equal(statsRequests, queries);
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Releases' })).toHaveAttribute('aria-current', 'page');
+    await page.screenshot({ path: fileURLToPath(new URL('artifacts/releases-desktop.png', root)), fullPage: true });
+    await page.getByRole('navigation').getByRole('link', { name: 'Statistics', exact: true }).click();
+    await expect(page.locator('#stats-content')).toBeVisible();
+  });
   await check('Admin charts, period selection, daily table, and version counts work in browser', async () => {
     await expect(page.locator('#stats-today')).toHaveText(String(stats.totals.today));
     await expect(page.locator('.stats-version').filter({ hasText: b.id })).toContainText(b.version);
@@ -132,7 +154,11 @@ try {
     await page.getByRole('button', { name: 'Refresh stats' }).click();
     await expect(page.locator('#stats-message')).toContainText('temporarily unavailable');
     await expect(page.locator('#stats-content')).toBeHidden();
+    await page.getByRole('navigation').getByRole('link', { name: 'Releases', exact: true }).click();
     await expect(page.locator('#upload-button')).toBeEnabled(); await expect(page.locator('.release').filter({ hasText: b.version })).toBeVisible();
+    await expect(page.locator('#stats-content')).toHaveCount(0);
+    await page.getByRole('navigation').getByRole('link', { name: 'Statistics', exact: true }).click();
+    await expect(page.locator('#stats-message')).toContainText('temporarily unavailable');
     await page.unroute('**/api/admin/stats?*');
     await page.route('**/api/admin/stats?*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...stats, totals: { today: 0, last7Days: 0, last30Days: 0, selected: 0 }, versions: [], daily: stats.daily.map(day => ({ ...day, downloads: 0 })) }) }));
     await page.getByRole('button', { name: 'Refresh stats' }).click();
@@ -144,7 +170,9 @@ try {
   await check('Sign-out revokes access to the stats API', async () => {
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(page.locator('#login-view')).toBeVisible();
+    await expect(page).toHaveURL(base + '/admin/stats');
     assert.equal((await context.request.get(base + '/api/admin/stats')).status(), 401);
+    assert.deepEqual(pageErrors, []);
   });
   report.passed = true;
 } catch (error) { report.error = error.stack; process.exitCode = 1; console.error(error); }

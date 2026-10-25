@@ -3,6 +3,8 @@ import { createMD5, createSHA256 } from "hash-wasm";
 interface Release { id: string; filename: string; bytes: number; version: string; published: string; downloadUrl: string }
 interface Pending { id: string; filename: string; bytes: number; version: string }
 interface Stats { days: number; generatedAt: string; totals: { today: number; last7Days: number; last30Days: number; selected: number }; daily: { date: string; downloads: number }[]; versions: { id: string; version: string; downloads: number }[] }
+const statsPage = document.body.dataset.page === "stats";
+const adminPath = statsPage ? "/admin/stats" : "/admin";
 const element = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => element<HTMLInputElement>(id);
 const button = (id: string) => element<HTMLButtonElement>(id);
@@ -114,14 +116,16 @@ for (const mode of ["login", "setup"]) element<HTMLFormElement>(`${mode}-form`).
     await api(`/api/admin/${mode}`, "POST", { password, ...(mode === "setup" ? { token: setupToken } : {}) });
     input(mode === "login" ? "login-password" : "new-password").value = "";
     setupToken = "";
-    location.replace("/admin");
+    location.replace(adminPath);
   } catch (error) { message(`${mode}-message`, errorText(error), "error"); }
   finally { submit.disabled = false; }
 });
-button("logout").addEventListener("click", async () => { await api("/api/admin/logout", "POST"); location.replace("/admin"); });
+button("logout").addEventListener("click", async () => { await api("/api/admin/logout", "POST"); location.replace(adminPath); });
+if (statsPage) {
+  button("stats-refresh").addEventListener("click", () => { void loadStats(); });
+  element("stats-days").addEventListener("change", () => { void loadStats(); });
+} else {
 button("refresh").addEventListener("click", () => historyList().catch(error => message("history-message", errorText(error), "error")));
-button("stats-refresh").addEventListener("click", () => { void loadStats(); });
-element("stats-days").addEventListener("change", () => { void loadStats(); });
 button("more").addEventListener("click", () => historyList(true).catch(error => message("history-message", errorText(error), "error")));
 input("archive").addEventListener("change", () => {
   const file = input("archive").files?.[0];
@@ -195,6 +199,10 @@ element<HTMLFormElement>("upload-form").addEventListener("submit", async event =
     button("upload-button").textContent = readPending() ? "Resume upload & publish" : "Upload & publish";
   }
 });
+}
 const mode = document.body.dataset.mode || "login";
 show(mode);
-if (mode === "dashboard") { void loadStats(); uploadState(); historyList().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("history-message", errorText(error), "error"); }); }
+if (mode === "dashboard") {
+  if (statsPage) void loadStats();
+  else { uploadState(); historyList().catch(error => { if (error instanceof ApiError && error.status === 401) show("login"); else message("history-message", errorText(error), "error"); }); }
+}
